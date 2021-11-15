@@ -2,4 +2,4 @@
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false -Scope AllUsers
 
 # connect using Env. 
-Connect-VIserver -User $Env:vCenter-User -Password $Env:vCenter-Pass -Server $Env:vCenter 
+Connect-VIserver -User $Env:vCenterUser -Password $Env:vCenterPass -Server $Env:vCenter 
