@@ -2,9 +2,13 @@
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false -Scope AllUsers
 
 # print out ENV
-Get-ChildItem Env:
+$myEnv = Get-ChildItem Env:
+write-host $myEnv
 # connect using Env. 
-Connect-VIserver -User $Env:vCenterUser -Password $Env:vCenterPass -Server $Env:vCenter -Verbose
+$vcenter = Connect-VIserver -User $Env:vCenterUser -Password $Env:vCenterPass -Server $Env:vCenter -Verbose
+
 
 # Verify the connection by listing the datacenters
-Get-Datacenter -V 
+$datacenter = Get-Datacenter -V 
+
+Write-Host $datacenter
