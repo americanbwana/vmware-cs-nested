@@ -143,7 +143,7 @@ if ($installVcsa -eq $true) {
 if ($installEsxi -eq $true) {
 
     # Get OVA configuration
-    $ovaConfiguration = Get-OvfConfiguration -Ovf $ovaPath
+    $ovaConfiguration = Get-OvfConfiguration $ovaPath
     if ( -not $ovaConfiguration ) {
         throw "Could not get ovaConfiguration.  Maybe the path is wrong, or it didn't get downloaded."
     }
