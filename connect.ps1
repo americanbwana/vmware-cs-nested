@@ -1,9 +1,9 @@
 # Add variables
-$repo = "http://dns.corp.local"
+$repo = "http://192.168.1.200"
 $esxiOva = "Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 $volume = "/nested"
 $installEsxi = $true
-$installVcsa = $true
+$installVcsa = $false
 $vcsaDirectory = "/nested/vcsa/"
 # Make sure volume is mounted and required files are available
 # the volume should be mounted on /nested
@@ -13,11 +13,8 @@ $vcsaDirectory = "/nested/vcsa/"
 # }
 $ovaPath = "/working/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 if ($installEsxi -eq $true) {
-    if (-not(Test-Path -Path $ovaPath)) {
-        # download from the repo 
-        Invoke-WebRequest -Uri "$repo/esxi/$esxiOva" -OutFile "$volume/$esxiOva"
-    } else {
-        Write-Host $esxiOva " Found."
+    # download from the repo 
+    Invoke-WebRequest -Uri "$repo/esxi/$esxiOva" -OutFile $ovfPath
     }
 } else {
     Write-Host "ESXi will not be installed"
@@ -26,13 +23,14 @@ if ($installEsxi -eq $true) {
 if ($installVcsa -eq $true) {
     if (-not(Test-Path -Path $vcsaDirectory)) {
         Write-Host "VCSA folder will be downloaded onto $volume"
-        wget -mxnp -nH http://192.168.1.200/repo/vcsa/  -P "/working/" -R "index.html*" -l7
+        wget -mxnpq -nH http://192.168.1.200/repo/vcsa/  -P "/working/" -R "index.html*" -l7
         # need to set X on ovftool* and vsca-deploy*
         # takes about 7 minutes to download vcsa repo. 8.1G
 
     }
 }
 
+du repo/
 
 # Disable SSL checking
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
