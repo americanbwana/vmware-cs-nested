@@ -18,7 +18,7 @@ if ($installEsxi -eq $true) {
     # $getEsxi = Invoke-WebRequest -Uri "$repo/repo/esxi/$esxiOva" -OutFile $ovfPath
     $repoPath = $repo + "/repo/esxi/" + $esxiOva
     Write-Host "Repo path is " + $repoPath
-    wget -mxnp -q -nH $ -P "/working/" -R "index.html*" 
+    wget -mxnp -q -nH $repoPath -P "/working/" -R "index.html*" 
     if (-not $getEsxi) {
         throw "Error downloading ESXi OVA."
     }
