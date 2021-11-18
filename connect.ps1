@@ -17,11 +17,13 @@ if ($installEsxi -eq $true) {
     # keeps running out of memory
     # $getEsxi = Invoke-WebRequest -Uri "$repo/repo/esxi/$esxiOva" -OutFile $ovfPath
     $repoPath = $repo + "/repo/esxi/"
-    Write-Host "Repo path is " + $repoPath
-    wget -mxnp -q -nH $repoPath -P "/working/" -R "index.html*" 
-    if (-not $getEsxi) {
-        throw "Error downloading ESXi OVA."
-    }
+    Write-Host "Repo path is " $repoPath
+    # works 
+    # wget -mxnp -nv  -nH http://192.168.1.200/repo/esxi/ -P /working -R "index.html*"
+    wget -mxnp -nv -nH $repoPath -P "/working" -R "index.html*" 
+    # if (-not $getEsxi) {
+    #     throw "Error downloading ESXi OVA."
+    # }
 }
 else {
     Write-Host "ESXi will not be installed"
@@ -31,7 +33,7 @@ if ($installVcsa -eq $true) {
     if (-not(Test-Path -Path $vcsaDirectory)) {
         Write-Host "VCSA folder will be downloaded."
         $repoPath = $repo + "/repo/vcsa/"
-        wget -mxnp -q -nH $repoPath  -P "/working/" -R "index.html*" -l7
+        wget -mxnp -nH $repoPath  -P "/working/" -R "index.html*" -l7
         # need to set X on ovftool* and vsca-deploy*
         # takes about 7 minutes to download vcsa repo. 8.1G
 
