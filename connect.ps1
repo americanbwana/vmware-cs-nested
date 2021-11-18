@@ -147,7 +147,8 @@ if ($installEsxi -eq $true) {
     if ( -not $ovaConfiguration ) {
         throw "Could not get ovaConfiguration.  Maybe the path is wrong, or it didn't get downloaded."
     }
-
+    # get the type
+    Write-Host "config getType " $ovfConfiguration.getType()
     # Change config
     $ovaConfiguration.common.guestinfo.dns.value = $VMDNS
     $ovaConfiguration.common.guestinfo.gateway.Value = $VMGateway
@@ -182,10 +183,10 @@ if ($installEsxi -eq $true) {
 
 
         # Write-Host $ovaConfiguration | Format-Custom -Depth 3
-        $vm = Import-VApp -Name $VMName -Source $ovaPath -VMHost $vmhost -Datastore $datastore -OvfConfiguration $ovaConfiguration
-        if ( -not $vm ) {
-            throw "Nested ESXi host did not get deployed."
-        }
+        # $vm = Import-VApp -Name $VMName -Source $ovaPath -VMHost $vmhost -Datastore $datastore -OvfConfiguration $ovaConfiguration
+        # if ( -not $vm ) {
+        #     throw "Nested ESXi host did not get deployed."
+        # }
     }
 
 }
