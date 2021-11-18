@@ -8,10 +8,10 @@ $vcsaDirectory = "/nested/vcsa/"
 # Make sure volume is mounted and required files are available
 # the volume should be mounted on /nested
 # 
-if (-not(Test-Path $volume)) {
-    throw "Docker volume $volume is not mounted."
-}
-$ovaPath = "/nested/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
+# if (-not(Test-Path $volume)) {
+#     throw "Docker volume $volume is not mounted."
+# }
+$ovaPath = "/working/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 if ($installEsxi -eq $true) {
     if (-not(Test-Path -Path $ovaPath)) {
         # download from the repo 
@@ -26,16 +26,12 @@ if ($installEsxi -eq $true) {
 if ($installVcsa -eq $true) {
     if (-not(Test-Path -Path $vcsaDirectory)) {
         Write-Host "VCSA folder will be downloaded onto $volume"
-        wget -mxnp -nH http://192.168.1.200/repo/vcsa/  -P "/nested/" -R "index.html*" -l7
+        wget -mxnp -nH http://192.168.1.200/repo/vcsa/  -P "/working/" -R "index.html*" -l7
         # need to set X on ovftool* and vsca-deploy*
         # takes about 7 minutes to download vcsa repo. 8.1G
 
     }
 }
-
-
-
-
 
 
 # Disable SSL checking
