@@ -1,16 +1,95 @@
 # Add variables
 $repo = "http://192.168.1.200"
 $esxiOva = "Nested_ESXi7.0u3_Appliance_Template_v1.ova"
-$volume = "/nested"
 $installEsxi = $true
 $installVcsa = $false
 $vcsaDirectory = "/nested/vcsa/"
-# Make sure volume is mounted and required files are available
-# the volume should be mounted on /nested
-# 
-# if (-not(Test-Path $volume)) {
-#     throw "Docker volume $volume is not mounted."
-# }
+
+# From WL
+$NestedESXiHostnameToIPs = @{
+    "tanzu-esxi-1" = "192.168.1.211"
+    "tanzu-esxi-2" = "192.168.1.212"
+    "tanzu-esxi-3" = "192.168.1.213"
+}
+
+# Nested ESXi VM Resources
+$NestedESXivCPU = "4"
+$NestedESXivMEM = "24" #GB
+$NestedESXiCachingvDisk = "8" #GB
+$NestedESXiCapacityvDisk = "100" #GB
+
+# VCSA Deployment Configuration
+$VCSADeploymentSize = "tiny"
+$VCSADisplayName = "tanzu-vcsa-3"
+$VCSAIPAddress = "192.168.1.210"
+$VCSAHostname = "192.168.1.210" #Change to IP if you don't have valid DNS
+$VCSAPrefix = "24"
+$VCSASSODomainName = "vsphere.local"
+$VCSASSOPassword = "VMware1!"
+$VCSARootPassword = "VMware1!"
+$VCSASSHEnable = "true"
+
+# General Deployment Configuration for Nested ESXi, VCSA & NSX VMs
+$VMDatacenter = "DC"
+$VMCluster = "Cl1"
+$VMNetwork = "VM Network"
+$VMDatastore = "datastore1"
+$VMNetmask = "255.255.255.0"
+$VMGateway = "192.168.1.1"
+$VMDNS = "192.168.1.200"
+$VMNTP = "pool.ntp.org"
+$VMPassword = "VMware1!"
+$VMDomain = "corp.local"
+$VMSyslog = "192.168.1.200"
+$VMFolder = "Nested"
+# Applicable to Nested ESXi only
+$VMSSH = "true"
+$VMVMFS = "false"
+
+# Name of new vSphere Datacenter/Cluster when VCSA is deployed
+$NewVCDatacenterName = "Tanzu-Datacenter"
+$NewVCVSANClusterName = "Workload-Cluster"
+$NewVCVDSName = "Tanzu-VDS"
+$NewVCDVPGName = "DVPG-Management Network"
+
+## Do not edit below here
+$random_string = -join ((65..90) + (97..122) | Get-Random -Count 8 | % {[char]$_})
+$VAppName = "Nested-vSphere-with-Tanzu-NSX-T-Lab-$random_string"
+
+$preCheck = 1
+$confirmDeployment = 1
+$deployNestedESXiVMs = 1
+$deployVCSA = 1
+$setupNewVC = 1
+$addESXiHostsToVC = 1
+$configureVSANDiskGroup = 1
+$configureVDS = 1
+$clearVSANHealthCheckAlarm = 1
+$setupTanzuStoragePolicy = 1
+$setupTKGContentLibrary = 1
+$deployNSXManager = 1
+$deployNSXEdge = 1
+$postDeployNSXConfig = 1
+$setupTanzu = 1
+$moveVMsIntovApp = 1
+
+$esxiTotalCPU = 0
+$vcsaTotalCPU = 0
+$nsxManagerTotalCPU = 0
+$nsxEdgeTotalCPU = 0
+$esxiTotalMemory = 0
+$vcsaTotalMemory = 0
+$nsxManagerTotalMemory = 0
+$nsxEdgeTotalMemory = 0
+$esxiTotalStorage = 0
+$vcsaTotalStorage = 0
+$nsxManagerTotalStorage = 0
+$nsxEdgeTotalStorage = 0
+
+$StartTime = Get-Date
+
+
+
 $ovaPath = "/working/repo/esxi/" + $esxiOva
 if ($installEsxi -eq $true) {
     # download from the repo 
@@ -76,8 +155,8 @@ if ( -not $ovaConfiguration ) {
     throw "Could not get ovaConfiguration.  Maybe the path is wrong, or it didn't get downloaded."
 }
 
-Write-Host "OVA configuration"
-Write-Host $ovaConfiguration.ToHashTable().Keys
+# Write-Host "OVA configuration"
+# Write-Host $ovaConfiguration.ToHashTable().Keys
 
 # Change config
 $ovaConfiguration.common.guestinfo.dns.value='192.168.1.200'
@@ -96,11 +175,21 @@ $ovaConfiguration.common.guestinfo.ssh.value= $true
 # $ovaConfiguration.NetworkMapping.VM_Network="VM Network"
 # $ovaConfiguration.Name="testesxi.corp.local"
 
+# print out the OVA settings
+$ovfconfig = $ovaConfiguration.TohashTable()
+$ovfconfig.GetEnumerator() | ForEach-Object {
+    $message = 'key {0} value {1}' -f $_.key, $_.value
+    Write-Host $message
+}
+
+
 Write-Host $ovaConfiguration | Format-Custom -Depth 3
 $vm = Import-VApp -Name 'testesxi.corp.local' -Source $ovaPath -VMHost $target -Datastore $datastore -OvfConfiguration $ovaConfiguration
 if ( -not $vm ) {
     throw "Nested ESXi host did not get deployed."
 }
+
+
 # Deploy OVA into vCenter
 
 # Disconnect viserver
