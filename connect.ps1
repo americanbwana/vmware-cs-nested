@@ -1,9 +1,14 @@
+# See if the volume mounted
+df -h 
 # Add variables
 $repo = "http://192.168.1.200"
 $esxiOva = "Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 $installEsxi = $true
 $installVcsa = $false
 $vcsaDirectory = "/nested/vcsa/"
+$VIServer = $Env:vCenter
+$VIUsername = $Env:vCenterUser
+$VIPassword = $Env:vCenterPass
 
 # From WL
 $NestedESXiHostnameToIPs = @{
@@ -31,7 +36,7 @@ $VCSASSHEnable = "true"
 
 # General Deployment Configuration for Nested ESXi, VCSA & NSX VMs
 $VMDatacenter = "DC"
-$VMCluster = "Cl1"
+$VMCluster = "CL1"
 $VMNetwork = "VM Network"
 $VMDatastore = "datastore1"
 $VMNetmask = "255.255.255.0"
@@ -43,8 +48,8 @@ $VMDomain = "corp.local"
 $VMSyslog = "192.168.1.200"
 $VMFolder = "Nested"
 # Applicable to Nested ESXi only
-$VMSSH = "true"
-$VMVMFS = "false"
+$VMSSH = $true
+$VMVMFS = $false
 
 # Name of new vSphere Datacenter/Cluster when VCSA is deployed
 $NewVCDatacenterName = "Tanzu-Datacenter"
@@ -88,6 +93,21 @@ $nsxEdgeTotalStorage = 0
 
 $StartTime = Get-Date
 
+# Disable SSL checking
+Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
+
+# if( $deployNestedESXiVMs -eq 1 -or $deployVCSA -eq 1 -or $deployNSXManager -eq 1 -or $deployNSXEdge -eq 1) {
+if( $installEsxi -eq $true -or $installVcsa -eq $true) {
+
+    
+    Write-Host "Connecting to Management vCenter Server $VIServer ..."
+    $viConnection = Connect-VIServer $VIServer -User $VIUsername -Password $VIPassword -WarningAction SilentlyContinue
+
+    $datastore = Get-Datastore -Server $viConnection -Name $VMDatastore | Select -First 1
+    $cluster = Get-Cluster -Server $viConnection -Name $VMCluster
+    $datacenter = $cluster | Get-Datacenter
+    $vmhost = $cluster | Get-VMHost | Select -First 1
+}
 
 
 $ovaPath = "/working/repo/esxi/" + $esxiOva
@@ -119,77 +139,56 @@ if ($installVcsa -eq $true) {
     }
 }
 
-du repo/
+# Now loop through $NestedESXiHostnameToIP
+if ($installEsxi -eq $true) {
 
-# Disable SSL checking
-Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
+    # Get OVA configuration
+    $ovaConfiguration = Get-OvfConfiguration -Ovf $ovaPath
+    if ( -not $ovaConfiguration ) {
+        throw "Could not get ovaConfiguration.  Maybe the path is wrong, or it didn't get downloaded."
+    }
 
-# print out ENV
-# $myEnv = Get-ChildItem Env:\
-# write-host $myEnv
-# connect using Env. 
-$vcenter = Connect-VIserver -User $Env:vCenterUser -Password $Env:vCenterPass -Server $Env:vCenter 
-Write-Host "Connected to " $vcenter.Name
+    # Change config
+    $ovaConfiguration.common.guestinfo.dns.value = $VMDNS
+    $ovaConfiguration.common.guestinfo.gateway.Value = $VMGateway
+    $ovaConfiguration.common.guestinfo.ntp.value = $VMNTP
+    # $ovaConfiguration.common.guestinfo.hostname.value="testesxi.corp.local"
+    $ovaConfiguration.common.guestinfo.netmask.value = $VMNetmask
+    $ovaConfiguration.common.guestinfo.domain.value = $VMDomain
+    # $ovaConfiguration.common.guestinfo.ipaddress.value="192.168.1.210"
+    $ovaConfiguration.common.guestinfo.password.value = $VMPassword
+    $ovaConfiguration.common.guestinfo.ssh.value = $VMSSH
+    $ovaConfiguration.common.guestinfo.createvmfs.value = $VMSSH
+    # $ovaConfiguration.EULAs.Accept.Value= $true
+    $networkMapLabel = ($ovaConfiguration.ToHashTable().keys | where {$_ -Match "NetworkMapping"}).replace("NetworkMapping.","").replace("-","_").replace(" ","_")
+    Write-Host $networkMapLabel
+    $ovaConfiguraton.NetworkMapping.$networkMapLabel.value = $VMNetwork
+    # $ovaConfiguration.NetworkMapping.VM_Network="VM Network"
+    # $ovaConfiguration.Name="testesxi.corp.local"
+
+    $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach-Object {
+        $VMName = $_.Key
+        $VMIPAddress = $_.Value
+
+        # update unique machine settings
+        $ovaConfiguration.common.guestinfo.hostname.value = $VMName
+        $ovaConfiguration.common.guestinfo.ipaddress.value = $VMIPAddress
+        # print out the OVA settings
+        $ovfconfig = $ovaConfiguration.TohashTable()
+        $ovfconfig.GetEnumerator() | ForEach-Object {
+            $message = 'key {0} value {1}' -f $_.key, $_.value
+            Write-Host $message
+        }
 
 
-# Verify the connection by listing the datacenters
-$datacenter = Get-Datacenter
+        # Write-Host $ovaConfiguration | Format-Custom -Depth 3
+        $vm = Import-VApp -Name $VMName -Source $ovaPath -VMHost $vmhost -Datastore $datastore -OvfConfiguration $ovaConfiguration
+        if ( -not $vm ) {
+            throw "Nested ESXi host did not get deployed."
+        }
+    }
 
-# get the datastore
-$datastore = Get-Datastore -Name 'datastore1'
-
-Write-Host $datacenter.Name
-$target = Get-VMHost -Name 'esx01.corp.local' 
-Write-Host $target.Name
-
-# # find the content library
-# $contentLibrary = Get-ContentLibrary -Name $env:contentLibary
-# Write-Host "Found content library " $contentLibrary.Name
-# # get the contentLibraryItem config
-# $contentLibaryItem = Get-ContentLibraryItem -Name $env:contentLibraryItem -ContentLibrary $contentLibary 
-# Write-Host "Item name " $contentLibaryItem.Name
-
-# Get OVA configuration
-$ovaConfiguration = Get-OvfConfiguration -Ovf $ovaPath
-if ( -not $ovaConfiguration ) {
-    throw "Could not get ovaConfiguration.  Maybe the path is wrong, or it didn't get downloaded."
 }
-
-# Write-Host "OVA configuration"
-# Write-Host $ovaConfiguration.ToHashTable().Keys
-
-# Change config
-$ovaConfiguration.common.guestinfo.dns.value='192.168.1.200'
-$ovaConfiguration.common.guestinfo.gateway.Value="192.168.1.1"
-$ovaConfiguration.common.guestinfo.ntp.value="0.north-america.pool.ntp.org"
-$ovaConfiguration.common.guestinfo.hostname.value="testesxi.corp.local"
-$ovaConfiguration.common.guestinfo.netmask.value="255.255.255.0"
-$ovaConfiguration.common.guestinfo.domain.value="corp.local"
-$ovaConfiguration.common.guestinfo.ipaddress.value="192.168.1.210"
-$ovaConfiguration.common.guestinfo.password.value="VMware1!"
-$ovaConfiguration.common.guestinfo.ssh.value= $true
-# $ovaConfiguration.EULAs.Accept.Value= $true
-# $networkMapLabel = ($ovaConfiguration.ToHashTable().keys | where {$_ -Match "NetworkMapping"}).replace("NetworkMapping.","").replace("-","_").replace(" ","_")
-# Write-Host $networkMapLabel
-# $ovaConfiguraton.NetworkMapping.$networkMapLabel.value = 'VM Network'
-# $ovaConfiguration.NetworkMapping.VM_Network="VM Network"
-# $ovaConfiguration.Name="testesxi.corp.local"
-
-# print out the OVA settings
-$ovfconfig = $ovaConfiguration.TohashTable()
-$ovfconfig.GetEnumerator() | ForEach-Object {
-    $message = 'key {0} value {1}' -f $_.key, $_.value
-    Write-Host $message
-}
-
-
-Write-Host $ovaConfiguration | Format-Custom -Depth 3
-$vm = Import-VApp -Name 'testesxi.corp.local' -Source $ovaPath -VMHost $target -Datastore $datastore -OvfConfiguration $ovaConfiguration
-if ( -not $vm ) {
-    throw "Nested ESXi host did not get deployed."
-}
-
-
 # Deploy OVA into vCenter
 
 # Disconnect viserver
