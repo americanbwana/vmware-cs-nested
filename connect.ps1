@@ -14,7 +14,7 @@ $vcsaDirectory = "/nested/vcsa/"
 $ovaPath = "/working/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 if ($installEsxi -eq $true) {
     # download from the repo 
-    $getEsxi = Invoke-WebRequest -Uri "$repo/esxi/$esxiOva" -OutFile $ovfPath
+    $getEsxi = Invoke-WebRequest -Uri "$repo/repo/esxi/$esxiOva" -OutFile $ovfPath
     if (-not $getEsxi) {
         throw "Error downloading ESXi OVA."
     }
