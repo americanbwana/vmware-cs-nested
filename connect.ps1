@@ -14,9 +14,12 @@ $vcsaDirectory = "/nested/vcsa/"
 $ovaPath = "/working/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 if ($installEsxi -eq $true) {
     # download from the repo 
-    Invoke-WebRequest -Uri "$repo/esxi/$esxiOva" -OutFile $ovfPath
+    $getEsxi = Invoke-WebRequest -Uri "$repo/esxi/$esxiOva" -OutFile $ovfPath
+    if (-not $getEsxi) {
+        throw "Error downloading ESXi OVA."
     }
-} else {
+}
+else {
     Write-Host "ESXi will not be installed"
 }
 
@@ -62,6 +65,9 @@ Write-Host $target.Name
 
 # Get OVA configuration
 $ovaConfiguration = Get-OvfConfiguration -Ovf $ovaPath
+if ( -not $ovaConfiguration ) {
+    throw "Could not get ovaConfiguration.  Maybe the path is wrong, or it didn't get downloaded."
+}
 
 Write-Host "OVA configuration"
 Write-Host $ovaConfiguration.ToHashTable().Keys
@@ -84,8 +90,10 @@ $ovaConfiguration.common.guestinfo.ssh.value= $true
 # $ovaConfiguration.Name="testesxi.corp.local"
 
 Write-Host $ovaConfiguration | Format-Custom -Depth 3
-Import-VApp -Name 'testesxi.corp.local' -Source $ovaPath -VMHost $target -Datastore $datastore -OvfConfiguration $ovaConfiguration
-
+$vm = Import-VApp -Name 'testesxi.corp.local' -Source $ovaPath -VMHost $target -Datastore $datastore -OvfConfiguration $ovaConfiguration
+if ( -not $vm ) {
+    throw "Nested ESXi host did not get deployed."
+}
 # Deploy OVA into vCenter
 
 # Disconnect viserver
