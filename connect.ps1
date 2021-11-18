@@ -11,10 +11,14 @@ $vcsaDirectory = "/nested/vcsa/"
 # if (-not(Test-Path $volume)) {
 #     throw "Docker volume $volume is not mounted."
 # }
-$ovaPath = "/working/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
+$ovaPath = "/working/repo/esxi/" + $esxiOva
 if ($installEsxi -eq $true) {
     # download from the repo 
-    $getEsxi = Invoke-WebRequest -Uri "$repo/repo/esxi/$esxiOva" -OutFile $ovfPath
+    # keeps running out of memory
+    # $getEsxi = Invoke-WebRequest -Uri "$repo/repo/esxi/$esxiOva" -OutFile $ovfPath
+    $repoPath = $repo + "/repo/esxi/" + $esxiOva
+    Write-Host "Repo path is " + $repoPath
+    wget -mxnpq -nH $ -P "/working/" -R "index.html*" 
     if (-not $getEsxi) {
         throw "Error downloading ESXi OVA."
     }
