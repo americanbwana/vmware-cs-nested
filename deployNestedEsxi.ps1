@@ -4,6 +4,8 @@
 # make sure they were imported
 if (-not $vCenter) {
     throw "variable.ps1 not imported"
+} else {
+    Write-Host "Variables were imported, for example $vCenter"
 }
 # Add variables
 $repo = "http://192.168.1.200"
@@ -11,15 +13,15 @@ $esxiOva = "Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 $installEsxi = $true
 $installVcsa = $false
 $vcsaDirectory = "/nested/vcsa/"
-$VIServer = $Env:vCenter
-$VIUsername = $Env:vCenterUser
-$VIPassword = $Env:vCenterPass
+$VIServer = $vCenter
+$VIUsername = $vCenterUser
+$VIPassword = $vCenterPass
 
 # From WL
 $NestedESXiHostnameToIPs = @{
-    $Env:Esxi01Name = $Env:Esxi01Ip
-    $Env:Esxi02Name = $Env:Esxi02Ip
-    $Env:Esxi03Name = $Env:Esxi03Ip
+    $Esxi01Name = $Esxi01Ip
+    $Esxi02Name = $Esxi02Ip
+    $Esxi03Name = $Esxi03Ip
 }
 
 Write-Host "hostnameToIp map" $NestedESXiHostnameToIPs
@@ -194,7 +196,7 @@ if ($installEsxi -eq $true) {
 
         # update resources on new machine
         # move vmknic to correct network 
-        Get-NetworkAdapter -VM $vm -Name 'vmnic0' | Set-NetworkAdapter -NetworkName $Env:EsxiMgmtNet -Confirm:$false
+        Get-NetworkAdapter -VM $vm -Name 'vmnic0' | Set-NetworkAdapter -NetworkName $EsxiMgmtNet -Confirm:$false
 
 
         # add vmnic 2 and 3
