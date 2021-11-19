@@ -1,6 +1,6 @@
 # import from variable file 
 # Generated and saved in CS stage.
-. /working/variables.ps1
+. "/working/variables.ps1"
 # make sure they were imported
 if (-not $vCenter) {
     throw "variable.ps1 not imported"
