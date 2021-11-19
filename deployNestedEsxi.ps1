@@ -1,5 +1,6 @@
-# See if the volume mounted
-df -h 
+# import from variable file 
+# Generated and saved in CS stage.
+. /working/variables.ps1
 # Add variables
 $repo = "http://192.168.1.200"
 $esxiOva = "Nested_ESXi7.0u3_Appliance_Template_v1.ova"
