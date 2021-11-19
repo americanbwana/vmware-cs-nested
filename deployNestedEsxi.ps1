@@ -196,7 +196,10 @@ if ($installEsxi -eq $true) {
 
         # update resources on new machine
         # move vmknic to correct network 
-        Get-NetworkAdapter -VM $vm -Name 'vmnic0' | Set-NetworkAdapter -NetworkName $EsxiMgmtNet -Confirm:$false
+        $netAdapters = Get-NetworkAdapter -VM $vm
+        Write-Host "VM adapter names $netAdapters"
+        Get-NetworkAdapter -VM $vm -Name 'Network adapter 1' | Set-NetworkAdapter -NetworkName $EsxiMgmtNet -Confirm:$false
+        Get-NetworkAdapter -VM $vm -Name 'Network adapter 2' | Set-NetworkAdapter -NetworkName $EsxiMgmtNet -Confirm:$false
 
 
         # add vmnic 2 and 3
