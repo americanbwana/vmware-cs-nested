@@ -1,6 +1,10 @@
 # import from variable file 
 # Generated and saved in CS stage.
 . /working/variables.ps1
+# make sure they were imported
+if (-not $vCenter) {
+    throw "variable.ps1 not imported"
+}
 # Add variables
 $repo = "http://192.168.1.200"
 $esxiOva = "Nested_ESXi7.0u3_Appliance_Template_v1.ova"
