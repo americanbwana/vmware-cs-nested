@@ -32,17 +32,6 @@ $NestedESXivMEM = "24" #GB
 $NestedESXiCachingvDisk = "8" #GB
 $NestedESXiCapacityvDisk = "100" #GB
 
-# VCSA Deployment Configuration
-$VCSADeploymentSize = "tiny"
-$VCSADisplayName = "tanzu-vcsa-3"
-$VCSAIPAddress = "192.168.1.210"
-$VCSAHostname = "192.168.1.210" #Change to IP if you don't have valid DNS
-$VCSAPrefix = "24"
-$VCSASSODomainName = "vsphere.local"
-$VCSASSOPassword = "VMware1!"
-$VCSARootPassword = "VMware1!"
-$VCSASSHEnable = "true"
-
 # General Deployment Configuration for Nested ESXi, VCSA & NSX VMs
 $VMDatacenter = "DC"
 $VMCluster = "CL1"
@@ -137,17 +126,6 @@ else {
     Write-Host "ESXi will not be installed"
 }
 
-if ($installVcsa -eq $true) {
-    if (-not(Test-Path -Path $vcsaDirectory)) {
-        Write-Host "VCSA folder will be downloaded."
-        $repoPath = $repo + "/repo/vcsa/"
-        wget -mxnp -nH $repoPath  -P "/working/" -R "index.html*" -l7
-        # need to set X on ovftool* and vsca-deploy*
-        # takes about 7 minutes to download vcsa repo. 8.1G
-
-    }
-}
-
 # Now loop through $NestedESXiHostnameToIP
 if ($installEsxi -eq $true) {
 
@@ -156,8 +134,7 @@ if ($installEsxi -eq $true) {
     if ( -not $ovaConfiguration ) {
         throw "Could not get ovaConfiguration.  Maybe the path is wrong, or it didn't get downloaded."
     }
-    # get the type
-    Write-Host "config getType " $ovfConfiguration.getType()
+
     # Change config
     $ovaConfiguration.common.guestinfo.dns.value = $VMDNS
     $ovaConfiguration.common.guestinfo.gateway.Value = $VMGateway
@@ -167,11 +144,6 @@ if ($installEsxi -eq $true) {
     $ovaConfiguration.common.guestinfo.password.value = $VMPassword
     $ovaConfiguration.common.guestinfo.ssh.value = $true
     $ovaConfiguration.common.guestinfo.createvmfs.value = $false
-    # $networkMapLabel = ($ovaConfiguration.ToHashTable().keys | where {$_ -Match "NetworkMapping"}).replace("NetworkMapping.","").replace("-","_").replace(" ","_")
-    # Write-Host $networkMapLabel
-    # $ovaConfiguraton.NetworkMapping.$networkMapLabel.value = $VMNetwork
-    # $ovaConfiguration.NetworkMapping.VM_Network="VM Network"
-    # $ovaConfiguration.Name="testesxi.corp.local"
 
     $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach-Object {
         $VMName = $_.Key
