@@ -31,7 +31,6 @@ $VMSSH = $true
 $VMVMFS = $false
 
 ## Do not edit below here
-$random_string = -join ((65..90) + (97..122) | Get-Random -Count 8 | % {[char]$_})
 
 # Disable SSL checking
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
@@ -55,14 +54,11 @@ $ovaPath = "/working/repo/esxi/" + $esxiOva
 # download from the repo 
 # Invoke-WebRequest kept running out of memory.
 # $getEsxi = Invoke-WebRequest -Uri "$repo/repo/esxi/$esxiOva" -OutFile $ovfPath
-$repoPath = $repoBaseUri + "/esxi/"
-Write-Host "Repo path is " $repoPath
-# Download ESXi OVA repo files.
-wget -mxnp -nv -nH $repoPath -P "/working" -R "index.html*" 
+# $repoPath = $repoBaseUri + "/esxi/"
+# Write-Host "Repo path is " $repoPath
+# # Download ESXi OVA repo files.
+# wget -mxnp -nv -nH $repoPath -P "/working" -R "index.html*" 
 
-else {
-    Write-Host "ESXi will not be installed"
-}
 
 # Now loop through $NestedESXiHostnameToIP
 # Get OVA configuration

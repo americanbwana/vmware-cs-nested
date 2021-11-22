@@ -28,22 +28,20 @@ $cluster = Get-Cluster -Server $viConnection -Name $VMCluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
-
-if (-not(Test-Path -Path $vcsaDirectory)) {
-    Write-Host "VCSA folder will be downloaded."
-    $repoPath = $repo + "/repo/vcsa/"
-    wget -mxnp -nH $repoPath  -P "/working/" -R "index.html*" -l7
-    # need to set X on ovftool* and vsca-deploy*
-    # takes about 7 minutes to download vcsa repo. 8.1G
-
-}
-
+# Write-Host "VCSA folder will be downloaded."
+# $repoPath = $repo + "/repo/vcsa/"
+# wget -mxnp -nH $repoPath  -P "/working/" -R "index.html*" -l7
+# # need to set X on ovftool* and vsca-deploy*
+# # takes about 7 minutes to download vcsa repo. 8.1G
 
 
 # Deploy OVA into vCenter
 # /working/repo/vcsa/VMware-VCSA-all-7.0.3/
 $config = (Get-Content -Raw "/working/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/templates/install/embedded_vCSA_on_VC.json") | convertfrom-json
 
+if ( -not $config ) {
+    throw "Could not get vcsa config file.  Maybe the path is wrong, or it didn't get downloaded."
+}
 $config.'new_vcsa'.vc.hostname = $vCenter
 $config.'new_vcsa'.vc.username = $vCenterUser
 $config.'new_vcsa'.vc.password = $vCenterPass
