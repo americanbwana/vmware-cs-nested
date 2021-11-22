@@ -23,8 +23,8 @@ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 Write-Host "Connecting to Management vCenter Server $vCenter ..."
 $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenter -WarningAction SilentlyContinue
 
-$datastore = Get-Datastore -Server $viConnection -Name $VMDatastore | Select -First 1
-$cluster = Get-Cluster -Server $viConnection -Name $VMCluster
+$datastore = Get-Datastore -Server $viConnection -Name $Datastore | Select -First 1
+$cluster = Get-Cluster -Server $viConnection -Name $Cluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
@@ -40,9 +40,9 @@ $config.'new_vcsa'.vc.hostname = $vCenter
 $config.'new_vcsa'.vc.username = $vCenterUser
 $config.'new_vcsa'.vc.password = $vCenterPass
 $config.'new_vcsa'.vc.deployment_network = $esxiMgmtNet
-$config.'new_vcsa'.vc.datastore = $vmDatastore
-$config.'new_vcsa'.vc.datacenter = $datacenter.name
-$config.'new_vcsa'.vc.target = $vmCluster
+$config.'new_vcsa'.vc.datastore = $Datastore
+$config.'new_vcsa'.vc.datacenter = $Datacenter
+$config.'new_vcsa'.vc.target = $Cluster
 $config.'new_vcsa'.appliance.thin_disk_mode = $true
 $config.'new_vcsa'.appliance.deployment_option = $VCSADeploymentSize
 $config.'new_vcsa'.appliance.name = "NestedVcsa-" + $BUILDTIME
@@ -61,7 +61,7 @@ $config.'new_vcsa'.sso.domain_name = "vsphere.local"
 
 $config | ConvertTo-Json | Set-Content -Path "/tmp/jsontemplate.json"
 
-Invoke-Expression "/working/repo/vcsa/VMware-VCSA-all-7.0.3//vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"
+Invoke-Expression "/working/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"
 
 # $vcsaVM = Get-VM -Name $VCSADisplayName -Server $viConnection
 # My-Logger "Moving $VCSADisplayName into $VAppName vApp ..."
