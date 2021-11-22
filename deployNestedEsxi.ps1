@@ -35,21 +35,18 @@ $VMVMFS = $false
 # Disable SSL checking
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 
-# if( $deployNestedESXiVMs -eq 1 -or $deployVCSA -eq 1 -or $deployNSXManager -eq 1 -or $deployNSXEdge -eq 1) {
-if( $installEsxi -eq $true -or $installVcsa -eq $true) {
+   
+Write-Host "Connecting to Management vCenter Server $VIServer ..."
+$viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
 
-    
-    Write-Host "Connecting to Management vCenter Server $VIServer ..."
-    $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
+$datastore = Get-Datastore -Server $viConnection -Name $vmDatastore | Select -First 1
+$cluster = Get-Cluster -Server $viConnection -Name $vmCluster
+$datacenter = $cluster | Get-Datacenter
+$vmhost = $cluster | Get-VMHost | Select -First 1
 
-    $datastore = Get-Datastore -Server $viConnection -Name $vmDatastore | Select -First 1
-    $cluster = Get-Cluster -Server $viConnection -Name $vmCluster
-    $datacenter = $cluster | Get-Datacenter
-    $vmhost = $cluster | Get-VMHost | Select -First 1
-}
 
 # /working is the entry point for the container
-$ovaPath = "/working/repo/esxi/" + $esxiOva
+$ovaPath = "/working/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 
 # download from the repo 
 # Invoke-WebRequest kept running out of memory.
