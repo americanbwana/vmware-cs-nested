@@ -45,7 +45,7 @@ $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
 # Add vAPP for new machines
-$vApp = New-Vapp -Location $cluster.name -Name vApp-Nested-$BUILDTIME -Server $vCenter -InventoryLocation $vmFolder
+$vApp = New-Vapp -Location $vmCluster -Name vApp-Nested-$BUILDTIME -Server $vCenter -InventoryLocation $vmFolder
 
 if ( -not $vApp ) {
     throw "vApp was not created on " + $cluster.name

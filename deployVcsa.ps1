@@ -28,10 +28,10 @@ $cluster = Get-Cluster -Server $viConnection -Name $VMCluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
-$vApp = Get-Vapp -Server $vCenter -Location $vmFolder
+$vApp = Get-Vapp -Server $vCenter -Name vApp-Nested-$BUILDTIME
 
 if ( -not $vApp ) {
-    throw "Could not find vApp in $vmFolder"
+    Write-Host "Could not find vApp in -Name vApp-Nested-$BUILDTIME"
 }
 
 # Deploy OVA into vCenter
@@ -68,6 +68,10 @@ $config.'new_vcsa'.sso.domain_name = "vsphere.local"
 $config | ConvertTo-Json | Set-Content -Path "/tmp/jsontemplate.json"
 
 Invoke-Expression "/working/repo/vcsa/VMware-VCSA-all-7.0.3//vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"
+
+# $vcsaVM = Get-VM -Name $VCSADisplayName -Server $viConnection
+# My-Logger "Moving $VCSADisplayName into $VAppName vApp ..."
+# Move-VM -VM $vcsaVM -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
 
 # Disconnect viserver
 Disconnect-VIServer -Server * -Force -Confirm:$false
