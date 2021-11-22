@@ -28,12 +28,6 @@ $cluster = Get-Cluster -Server $viConnection -Name $VMCluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
-$vApp = Get-Vapp -Server $vCenter -Name vApp-Nested-$BUILDTIME
-
-if ( -not $vApp ) {
-    Write-Host "Could not find vApp in -Name vApp-Nested-$BUILDTIME"
-}
-
 # Deploy OVA into vCenter
 # /working/repo/vcsa/VMware-VCSA-all-7.0.3/
 $config = (Get-Content -Raw "/working/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/templates/install/embedded_vCSA_on_VC.json") | convertfrom-json

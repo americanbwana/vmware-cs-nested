@@ -44,6 +44,8 @@ $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterP
 
 if ( -not $viConnection ) {
     throw "Could not connect to $vCenter"
+} else {
+    Write-Host $viConnection
 }
 
 $datastore = Get-Datastore -Server $viConnection -Name $vmDatastore | Select -First 1
@@ -52,11 +54,6 @@ $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
 # Add vAPP for new machines
-$vApp = New-Vapp -Location $vmCluster -Name vApp-Nested-$BUILDTIME -Server $vCenter -InventoryLocation $vmFolder
-
-if ( -not $vApp ) {
-    throw "vApp was not created on " + $cluster.name
-}
 
 # /working is the entry point for the container
 $ovaPath = "/working/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
@@ -96,7 +93,7 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
 
 
     # Write-Host $ovaConfiguration | Format-Custom -Depth 3
-    $vm = Import-VApp -Name $VMName + "-" + $BUILDTIME + "." + $domain -Source $ovaPath -VMHost $vmhost -Datastore $datastore -OvfConfiguration $ovaConfiguration -DiskStorageFormat thin -Location $vApp
+    $vm = Import-VApp -Name $VMName + "-" + $BUILDTIME + "." + $domain -Source $ovaPath -VMHost $vmhost -Datastore $datastore -OvfConfiguration $ovaConfiguration -DiskStorageFormat thin
     if ( -not $vm ) {
         throw "Nested ESXi host did not get deployed."
     }
