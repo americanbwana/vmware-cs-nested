@@ -93,7 +93,9 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
 
 
     # Write-Host $ovaConfiguration | Format-Custom -Depth 3
-    $vm = Import-VApp -Name $VMName + "-" + $BUILDTIME + "." + $domain -Source $ovaPath -VMHost $vmhost -Datastore $datastore -OvfConfiguration $ovaConfiguration -DiskStorageFormat thin
+    $tempVmName = $VMName + "-" + $BUILDTIME + "." + $domain
+    Write-Host "VMname $tempVmName"
+    $vm = Import-VApp -Name $tempVmName -Source $ovaPath -VMHost $vmhost -Datastore $datastore -OvfConfiguration $ovaConfiguration -DiskStorageFormat thin
     if ( -not $vm ) {
         throw "Nested ESXi host did not get deployed."
     }
