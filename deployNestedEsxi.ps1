@@ -44,17 +44,15 @@ $cluster = Get-Cluster -Server $viConnection -Name $vmCluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
+# Add vAPP for new machines
+$vApp = New-Vapp -Location $cluster.name -Name vApp-Nested-$BUILDTIME -Server $vCenter -InventoryLocation $vmFolder
+
+if ( -not $vApp ) {
+    throw "vApp was not created on " + $cluster.name
+}
 
 # /working is the entry point for the container
 $ovaPath = "/working/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
-
-# download from the repo 
-# Invoke-WebRequest kept running out of memory.
-# $getEsxi = Invoke-WebRequest -Uri "$repo/repo/esxi/$esxiOva" -OutFile $ovfPath
-# $repoPath = $repoBaseUri + "/esxi/"
-# Write-Host "Repo path is " $repoPath
-# # Download ESXi OVA repo files.
-# wget -mxnp -nv -nH $repoPath -P "/working" -R "index.html*" 
 
 
 # Now loop through $NestedESXiHostnameToIP
@@ -80,7 +78,7 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
     $VMIPAddress = $_.Value
 
     # update unique machine settings
-    $ovaConfiguration.common.guestinfo.hostname.value = $VMName + "=" + $BUILDTIME + "." + $domain
+    $ovaConfiguration.common.guestinfo.hostname.value = $VMName + "-" + $BUILDTIME + "." + $domain
     $ovaConfiguration.common.guestinfo.ipaddress.value = $VMIPAddress
     # print out the OVA settings
     $ovfconfig = $ovaConfiguration.TohashTable()
@@ -91,7 +89,7 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
 
 
     # Write-Host $ovaConfiguration | Format-Custom -Depth 3
-    $vm = Import-VApp -Name $VMName -Source $ovaPath -VMHost $vmhost -Datastore $datastore -OvfConfiguration $ovaConfiguration -DiskStorageFormat thin
+    $vm = Import-VApp -Name $VMName + "-" + $BUILDTIME + "." + $domain -Source $ovaPath -VMHost $vmhost -Datastore $datastore -OvfConfiguration $ovaConfiguration -DiskStorageFormat thin -Location $vApp
     if ( -not $vm ) {
         throw "Nested ESXi host did not get deployed."
     }

@@ -20,20 +20,19 @@ $VCSADeploymentSize = "tiny"
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 
 
-Write-Host "Connecting to Management vCenter Server $VIServer ..."
-$viConnection = Connect-VIServer $VIServer -User $VIUsername -Password $VIPassword -WarningAction SilentlyContinue
+Write-Host "Connecting to Management vCenter Server $vCenter ..."
+$viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenter -WarningAction SilentlyContinue
 
 $datastore = Get-Datastore -Server $viConnection -Name $VMDatastore | Select -First 1
 $cluster = Get-Cluster -Server $viConnection -Name $VMCluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
-# Write-Host "VCSA folder will be downloaded."
-# $repoPath = $repo + "/repo/vcsa/"
-# wget -mxnp -nH $repoPath  -P "/working/" -R "index.html*" -l7
-# # need to set X on ovftool* and vsca-deploy*
-# # takes about 7 minutes to download vcsa repo. 8.1G
+$vApp = Get-Vapp -Server $vCenter -Location $vmFolder
 
+if ( -not $vApp ) {
+    throw "Could not find vApp in $vmFolder"
+}
 
 # Deploy OVA into vCenter
 # /working/repo/vcsa/VMware-VCSA-all-7.0.3/
@@ -42,6 +41,7 @@ $config = (Get-Content -Raw "/working/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-i
 if ( -not $config ) {
     throw "Could not get vcsa config file.  Maybe the path is wrong, or it didn't get downloaded."
 }
+
 $config.'new_vcsa'.vc.hostname = $vCenter
 $config.'new_vcsa'.vc.username = $vCenterUser
 $config.'new_vcsa'.vc.password = $vCenterPass
