@@ -36,8 +36,15 @@ $VMVMFS = $false
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 
    
-Write-Host "Connecting to Management vCenter Server $VIServer ..."
-$viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
+Write-Host "Connecting to Management vCenter Server $vCenter ..."
+Write-Host "Username $vCenterUser"
+Write-Host "Pass $vCenterPass"
+# $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
+$viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass 
+
+if ( -not $viConnection ) {
+    throw "Could not connect to $vCenter"
+}
 
 $datastore = Get-Datastore -Server $viConnection -Name $vmDatastore | Select -First 1
 $cluster = Get-Cluster -Server $viConnection -Name $vmCluster
