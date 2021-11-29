@@ -21,12 +21,13 @@ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 
 
 Write-Host "Connecting to Management vCenter Server $vCenter ..."
-$viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenter -WarningAction SilentlyContinue
+$viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
 
 $datastore = Get-Datastore -Server $viConnection -Name $Datastore | Select -First 1
 $cluster = Get-Cluster -Server $viConnection -Name $Cluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
+
 
 # Deploy OVA into vCenter
 # /working/repo/vcsa/VMware-VCSA-all-7.0.3/
@@ -49,7 +50,7 @@ $config.'new_vcsa'.appliance.name = "NestedVcsa-" + $BUILDTIME
 $config.'new_vcsa'.network.ip_family = "ipv4"
 $config.'new_vcsa'.network.mode = "static"
 $config.'new_vcsa'.network.ip = $vcsaIp
-$config.'new_vcsa'.network.dns_servers[0] = $ntpServers
+$config.'new_vcsa'.network.dns_servers[0] = $dnsServers
 $config.'new_vcsa'.network.prefix = $esxiSubnetPrefix
 $config.'new_vcsa'.network.gateway = $esxiGateway
 $config.'new_vcsa'.os.ntp_servers = $ntpServers
@@ -59,10 +60,10 @@ $config.'new_vcsa'.os.ssh_enable = $true
 $config.'new_vcsa'.sso.password = $esxiPassword
 $config.'new_vcsa'.sso.domain_name = "vsphere.local"
 
-$config | ConvertTo-Json | Set-Content -Path "/tmp/jsontemplate.json"
-$config | ConvertTo-Json | Set-Content -Path "/nestedEsxi/NestedVcsa-$BUILDTIME.json"
+$config | ConvertTo-Json -Depth 4 | Set-Content -Path "/tmp/jsontemplate.json"
+$config | ConvertTo-Json -Depth 4| Set-Content -Path "/working/NestedVcsa-$BUILDTIME.json"
 
-Invoke-Expression "/working/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  | Out-File -Append -LiteralPath /nestedEsxi//nestedEsxi/NestedVcsa-$BUILDTIME.json
+Invoke-Expression "/working/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  | Out-File -Append -LiteralPath /working/logs/nestedEsxi/NestedVcsa-$BUILDTIME.json
 # $vcsaVM = Get-VM -Name $VCSADisplayName -Server $viConnection
 # My-Logger "Moving $VCSADisplayName into $VAppName vApp ..."
 # Move-VM -VM $vcsaVM -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
