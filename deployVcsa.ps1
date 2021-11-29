@@ -23,8 +23,8 @@ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 Write-Host "Connecting to Management vCenter Server $vCenter ..."
 $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
 
-$datastore = Get-Datastore -Server $viConnection -Name $Datastore | Select -First 1
-$cluster = Get-Cluster -Server $viConnection -Name $Cluster
+$datastore = Get-Datastore -Server $viConnection -Name $vmDatastore | Select -First 1
+$cluster = Get-Cluster -Server $viConnection -Name $vmCluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
