@@ -63,7 +63,7 @@ $config.'new_vcsa'.sso.domain_name = "vsphere.local"
 $config | ConvertTo-Json -Depth 4 | Set-Content -Path "/tmp/jsontemplate.json"
 $config | ConvertTo-Json -Depth 4| Set-Content -Path "/working/NestedVcsa-$BUILDTIME.json"
 
-Invoke-Expression "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  | Out-File -Append -LiteralPath /var/workspace_cache/logs/nestedEsxi/NestedVcsa-$BUILDTIME.json
+Invoke-Expression "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  | Out-File -Append -LiteralPath /var/workspace_cache/logs/NestedVcsa-$BUILDTIME.json
 # Invoke-Expression "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  
 # $vcsaVM = Get-VM -Name $VCSADisplayName -Server $viConnection
 # My-Logger "Moving $VCSADisplayName into $VAppName vApp ..."
