@@ -56,7 +56,7 @@ $vmhost = $cluster | Get-VMHost | Select -First 1
 # Add vAPP for new machines
 
 # /working is the entry point for the container
-$ovaPath = "/working/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
+$ovaPath = "/var/workspace_cache/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 
 
 # Now loop through $NestedESXiHostnameToIP

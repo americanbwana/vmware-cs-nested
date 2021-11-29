@@ -31,7 +31,7 @@ $vmhost = $cluster | Get-VMHost | Select -First 1
 
 # Deploy OVA into vCenter
 # /working/repo/vcsa/VMware-VCSA-all-7.0.3/
-$config = (Get-Content -Raw "/working/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/templates/install/embedded_vCSA_on_VC.json") | convertfrom-json
+$config = (Get-Content -Raw "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/templates/install/embedded_vCSA_on_VC.json") | convertfrom-json
 
 if ( -not $config ) {
     throw "Could not get vcsa config file.  Maybe the path is wrong, or it didn't get downloaded."
@@ -63,7 +63,8 @@ $config.'new_vcsa'.sso.domain_name = "vsphere.local"
 $config | ConvertTo-Json -Depth 4 | Set-Content -Path "/tmp/jsontemplate.json"
 $config | ConvertTo-Json -Depth 4| Set-Content -Path "/working/NestedVcsa-$BUILDTIME.json"
 
-Invoke-Expression "/working/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  | Out-File -Append -LiteralPath /working/logs/nestedEsxi/NestedVcsa-$BUILDTIME.json
+Invoke-Expression "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  | Out-File -Append -LiteralPath /var/workspace_cache/working/logs/nestedEsxi/NestedVcsa-$BUILDTIME.json
+# Invoke-Expression "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  
 # $vcsaVM = Get-VM -Name $VCSADisplayName -Server $viConnection
 # My-Logger "Moving $VCSADisplayName into $VAppName vApp ..."
 # Move-VM -VM $vcsaVM -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
