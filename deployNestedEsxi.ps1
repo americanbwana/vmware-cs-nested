@@ -1,3 +1,12 @@
+# Using k8s CS pipeline
+# Need a persistentVolumeClaim, PV with at 30Gi
+# The repo files need to be copied over from within the container. 
+# Coping them over to the PV from the node causes issues
+# PV is mounted on /var/workspace_cache
+# Command to copy files over from Repo.
+# wget -mxnp -q -nH '${input.Repo_Base_URI}'vcsa/ -P "/var/workspace_cache/" -R "index.htm
+# will need to chmod +x ovftool* and vcsa-deploy*
+# 
 # import from variable file 
 # Generated and saved in CS stage.
 . "/working/variables.ps1"
@@ -8,7 +17,7 @@ if (-not $vCenter) {
     Write-Host "Variables were imported, for example $vCenter"
 }
 # Add variables
-$esxiOva = "Nested_ESXi7.0u3_Appliance_Template_v1.ova"
+# $esxiOva = "Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 
 # From WL
 $NestedESXiHostnameToIPs = @{
@@ -17,7 +26,11 @@ $NestedESXiHostnameToIPs = @{
     $Esxi03Name = $Esxi03Ip
 }
 
-Write-Host "hostnameToIp map" $NestedESXiHostnameToIPs
+
+$VAppName = "Nested-vSphere-" + $BUILDTIME
+$verboseLogFile = "/var/workspace_cache/logs/vsphere-deployment-" + $BUILDTIME + ".log"
+
+# Write-Host "hostnameToIp map" $NestedESXiHostnameToIPs
 
 # Nested ESXi VM Resources
 $NestedESXivCPU = "4"
@@ -38,7 +51,7 @@ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
    
 Write-Host "Connecting to Management vCenter Server $vCenter ..."
 Write-Host "Username $vCenterUser"
-Write-Host "Pass $vCenterPass"
+# Write-Host "Pass $vCenterPass"
 # $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
 $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass 
 
@@ -120,6 +133,21 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
     # Start new Esxi hosts
     $vm | Start-Vm -RunAsync | Out-Null 
     }
+
+# Move hosts into vAPP
+Write-Host "Creating vApp"
+$VApp = New-VApp -Name $VAppName -Server $viConnection -Location $cluster
+
+if(-Not (Get-Folder $vmFolder -ErrorAction Ignore)) {
+    Write-Host "Creating VM Folder $vmFolder ..."
+    $folder = New-Folder -Name $vmFolder -Server $viConnection -Location (Get-Datacenter $vmDatacenter | Get-Folder vm)
+}
+
+Write-Host "Moving Nested ESXi VMs into $VAppName vApp ..."
+$NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach-Object {
+    $vm = Get-VM -Name $_.Key -Server $viConnection
+    Move-VM -VM $vm -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
+}
 
 # Disconnect viserver
 Disconnect-VIServer -Server * -Force -Confirm:$false

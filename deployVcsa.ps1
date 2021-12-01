@@ -11,6 +11,9 @@ if (-not $vCenter) {
 # VCSA Deployment Configuration
 $VCSADeploymentSize = "tiny"
 
+# Other variables
+$VAppName = "Nested-vSphere-" + $BUILDTIME
+$verboseLogFile = "/var/workspace_cache/logs/vsphere-deployment-" + $BUILDTIME + ".log"
 
 # General Deployment Configuration for Nested ESXi, VCSA & NSX VMs
 
@@ -23,10 +26,10 @@ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 Write-Host "Connecting to Management vCenter Server $vCenter ..."
 $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
 
-$datastore = Get-Datastore -Server $viConnection -Name $vmDatastore | Select -First 1
-$cluster = Get-Cluster -Server $viConnection -Name $vmCluster
-$datacenter = $cluster | Get-Datacenter
-$vmhost = $cluster | Get-VMHost | Select -First 1
+# $datastore = Get-Datastore -Server $viConnection -Name $vmDatastore | Select -First 1
+# $cluster = Get-Cluster -Server $viConnection -Name $vmCluster
+# $datacenter = $cluster | Get-Datacenter
+# $vmhost = $cluster | Get-VMHost | Select -First 1
 
 
 # Deploy OVA into vCenter
@@ -36,6 +39,8 @@ $config = (Get-Content -Raw "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.
 if ( -not $config ) {
     throw "Could not get vcsa config file.  Maybe the path is wrong, or it didn't get downloaded."
 }
+# Set vcsa display name
+$vcsaDisplayName = "NestedVcsa-" + $BUILDTIME
 
 $config.'new_vcsa'.vc.hostname = $vCenter
 $config.'new_vcsa'.vc.username = $vCenterUser
@@ -46,7 +51,7 @@ $config.'new_vcsa'.vc.datacenter = $vmDatacenter
 $config.'new_vcsa'.vc.target = $vmCluster
 $config.'new_vcsa'.appliance.thin_disk_mode = $true
 $config.'new_vcsa'.appliance.deployment_option = $VCSADeploymentSize
-$config.'new_vcsa'.appliance.name = "NestedVcsa-" + $BUILDTIME
+$config.'new_vcsa'.appliance.name =$vcsaDisplayName
 $config.'new_vcsa'.network.ip_family = "ipv4"
 $config.'new_vcsa'.network.mode = "static"
 $config.'new_vcsa'.network.ip = $vcsaIp
@@ -61,14 +66,19 @@ $config.'new_vcsa'.sso.password = $esxiPassword
 $config.'new_vcsa'.sso.domain_name = "vsphere.local"
 
 $config | ConvertTo-Json -Depth 4 | Set-Content -Path "/tmp/jsontemplate.json"
+# save the config for future reference on pv
+Write-Host "Saving a copy of the jsontemplate as /var/workspace_cache/vcsajson/NestedVcsa-" + $BUILDTIME + ".json"
 $config | ConvertTo-Json -Depth 4| Set-Content -Path "/var/workspace_cache/vcsajson/NestedVcsa-$BUILDTIME.json"
 
-# moved to shell command in CI
-# Invoke-Command -NoNewScope "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  | Out-File -Append -LiteralPath /var/workspace_cache/logs/NestedVcsa-$BUILDTIME.log
-# Invoke-Expression "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  
-# $vcsaVM = Get-VM -Name $VCSADisplayName -Server $viConnection
-# My-Logger "Moving $VCSADisplayName into $VAppName vApp ..."
-# Move-VM -VM $vcsaVM -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
+# run the command to deploy the VCSA.
+Write-Host "Deploying vCSA.  This will take at least 30 minutes so be patient."
+Write-host "You can view the status by tailing /var/workspace_cache/NestedVcsa-" + $BUILDTIME + ".log"
+Invoke-Expression "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  | Out-File -Append -LiteralPath /var/workspace_cache/logs/NestedVcsa-$BUILDTIME.log
+
+# move into vApp
+Write-Host "Moving $vcsaDisplayName into $VAppName vApp ..."
+$vcsaVM = Get-VM -Name $vcsaDisplayName -Server $viConnection
+Move-VM -VM $vcsaVM -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
 
 # Disconnect viserver
 Disconnect-VIServer -Server * -Force -Confirm:$false
