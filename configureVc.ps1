@@ -57,14 +57,11 @@ if( -Not $d) {
 
 $c = Get-Cluster -Server $vc CL1 -ErrorAction Ignore
 if( -Not $c) {
-    if($configureVSANDiskGroup -eq 1) {
-        My-Logger "Creating VSAN Cluster VLANCluster ..."
-        New-Cluster -Server $vc -Name CL1 -Location (Get-Datacenter -Name DC -Server $vc) -DrsEnabled -HAEnabled -VsanEnabled | Out-File -Append -LiteralPath $verboseLogFile
-    } else {
-        My-Logger "Creating vSphere Cluster VLANCluster ..."
-        New-Cluster -Server $vc -Name CL1 -Location (Get-Datacenter -Name DC -Server $vc) -DrsEnabled -HAEnabled | Out-File -Append -LiteralPath $verboseLogFile
-    }
-    (Get-Cluster VLANCluster) | New-AdvancedSetting -Name "das.ignoreRedundantNetWarning" -Type ClusterHA -Value $true -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
+
+    Write-Host "Creating VSAN Cluster VLANCluster ..."
+    New-Cluster -Server $vc -Name CL1 -Location (Get-Datacenter -Name DC -Server $vc) -DrsEnabled -HAEnabled -VsanEnabled | Out-File -Append -LiteralPath $verboseLogFile
+
+(Get-Cluster VLANCluster) | New-AdvancedSetting -Name "das.ignoreRedundantNetWarning" -Type ClusterHA -Value $true -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
 }
 
 # Add hosts to cluster
@@ -115,16 +112,16 @@ foreach ($vmhost in Get-Cluster -Server $vc | Get-VMHost) {
 # }
 
 
-Write-Host "Clearing default VSAN Health Check Alarms, not applicable in Nested ESXi env ..."
-$alarmMgr = Get-View AlarmManager -Server $vc
-Get-Cluster -Server $vc | where {$_.ExtensionData.TriggeredAlarmState} | %{
-    $cluster = $_
-    $cluster.ExtensionData.TriggeredAlarmState | %{
-        $alarmMgr.AcknowledgeAlarm($_.Alarm,$cluster.ExtensionData.MoRef)
-    }
-}
-$alarmSpec = New-Object VMware.Vim.AlarmFilterSpec
-$alarmMgr.ClearTriggeredAlarms($alarmSpec)
+# Write-Host "Clearing default VSAN Health Check Alarms, not applicable in Nested ESXi env ..."
+# $alarmMgr = Get-View AlarmManager -Server $vc
+# Get-Cluster -Server $vc | where {$_.ExtensionData.TriggeredAlarmState} | %{
+#     $cluster = $_
+#     $cluster.ExtensionData.TriggeredAlarmState | %{
+#         $alarmMgr.AcknowledgeAlarm($_.Alarm,$cluster.ExtensionData.MoRef)
+#     }
+# }
+# $alarmSpec = New-Object VMware.Vim.AlarmFilterSpec
+# $alarmMgr.ClearTriggeredAlarms($alarmSpec)
 
 Set-VsanClusterConfiguration -Configuration VSANCluster -AddSilentHealthCheck controlleronhcl,vumconfig,vumrecommendation -PerformanceServiceEnabled $true
 
