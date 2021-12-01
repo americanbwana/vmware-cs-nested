@@ -4,7 +4,7 @@
 # Coping them over to the PV from the node causes issues
 # PV is mounted on /var/workspace_cache
 # Command to copy files over from Repo.
-# wget -mxnp -q -nH '${input.Repo_Base_URI}'vcsa/ -P "/var/workspace_cache/" -R "index.htm
+# wget -mxnp -q -nH '${input.Repo_Base_URI}'vcsa/ -P "/var/workspace_cache/" -R "index.html*""
 # will need to chmod +x ovftool* and vcsa-deploy*
 # 
 # import from variable file 
@@ -98,11 +98,11 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
     $ovaConfiguration.common.guestinfo.hostname.value = $VMName + "-" + $BUILDTIME + "." + $domain
     $ovaConfiguration.common.guestinfo.ipaddress.value = $VMIPAddress
     # print out the OVA settings
-    $ovfconfig = $ovaConfiguration.TohashTable()
-    $ovfconfig.GetEnumerator() | ForEach-Object {
-        $message = 'key {0} value {1}' -f $_.key, $_.value
-        Write-Host $message
-    }
+    # $ovfconfig = $ovaConfiguration.TohashTable()
+    # $ovfconfig.GetEnumerator() | ForEach-Object {
+    #     $message = 'key {0} value {1}' -f $_.key, $_.value
+    #     Write-Host $message
+    # }
 
 
     # Write-Host $ovaConfiguration | Format-Custom -Depth 3
@@ -145,7 +145,9 @@ if(-Not (Get-Folder $vmFolder -ErrorAction Ignore)) {
 
 Write-Host "Moving Nested ESXi VMs into $VAppName vApp ..."
 $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach-Object {
-    $vm = Get-VM -Name $_.Key -Server $viConnection
+    $VMName = $_.Key
+    $tempVmName = $VMName + "-" + $BUILDTIME + "." + $domain
+    $vm = Get-VM -Name $tempVmName -Server $viConnection
     Move-VM -VM $vm -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
 }
 

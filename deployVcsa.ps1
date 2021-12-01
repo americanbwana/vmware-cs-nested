@@ -67,15 +67,16 @@ $config.'new_vcsa'.sso.domain_name = "vsphere.local"
 
 $config | ConvertTo-Json -Depth 4 | Set-Content -Path "/tmp/jsontemplate.json"
 # save the config for future reference on pv
-Write-Host "Saving a copy of the jsontemplate as /var/workspace_cache/vcsajson/NestedVcsa-" + $BUILDTIME + ".json"
+Write-Host "Saving a copy of the jsontemplate as /var/workspace_cache/vcsajson/NestedVcsa-$BUILDTIME.json"
 $config | ConvertTo-Json -Depth 4| Set-Content -Path "/var/workspace_cache/vcsajson/NestedVcsa-$BUILDTIME.json"
 
 # run the command to deploy the VCSA.
 Write-Host "Deploying vCSA.  This will take at least 30 minutes so be patient."
-Write-host "You can view the status by tailing /var/workspace_cache/NestedVcsa-" + $BUILDTIME + ".log"
+Write-host "You can view the status by tailing /var/workspace_cache/NestedVcsa-$BUILDTIME.log"
 Invoke-Expression "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  | Out-File -Append -LiteralPath /var/workspace_cache/logs/NestedVcsa-$BUILDTIME.log
 
 # move into vApp
+$VApp = Get-VApp -Name $VAppName -Server $viConnection -Location $cluster
 Write-Host "Moving $vcsaDisplayName into $VAppName vApp ..."
 $vcsaVM = Get-VM -Name $vcsaDisplayName -Server $viConnection
 Move-VM -VM $vcsaVM -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
