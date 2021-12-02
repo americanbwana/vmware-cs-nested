@@ -28,22 +28,22 @@ $NestedESXiCapacityvDisk = "100" #GB
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 
    
-Write-Host "Connecting to Management vCenter Server $vCenter ..."
-Write-Host "Username $vCenterUser"
+# Write-Host "Connecting to Management vCenter Server $vCenter ..."
+# Write-Host "Username $vCenterUser"
 # Write-Host "Pass $vCenterPass"
 # $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
-$viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass 
+# $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass 
 
-if ( -not $viConnection ) {
-    throw "Could not connect to $vCenter"
-} else {
-    Write-Host $viConnection
-}
+# if ( -not $viConnection ) {
+#     throw "Could not connect to $vCenter"
+# } else {
+#     Write-Host $viConnection
+# }
 
-$datastore = Get-Datastore -Server $viConnection -Name $vmDatastore | Select -First 1
-$cluster = Get-Cluster -Server $viConnection -Name $vmCluster
-$datacenter = $cluster | Get-Datacenter
-$vmhost = $cluster | Get-VMHost | Select -First 1
+# $datastore = Get-Datastore -Server $viConnection -Name $vmDatastore | Select -First 1
+# $cluster = Get-Cluster -Server $viConnection -Name $vmCluster
+# $datacenter = $cluster | Get-Datacenter
+# $vmhost = $cluster | Get-VMHost | Select -First 1
 
 # Configure vCenter
 Write-Host "Connecting to the new VCSA ..."
@@ -51,7 +51,7 @@ $vc = Connect-VIServer $vcsaHostname -User "administrator@vsphere.local" -Passwo
 
 $d = Get-Datacenter -Server $vc DC -ErrorAction Ignore
 if( -Not $d) {
-    My-Logger "Creating Datacenter DC ..."
+    Write-Host "Creating Datacenter DC ..."
     New-Datacenter -Server $vc -Name DC -Location (Get-Folder -Type Datacenter -Server $vc) | Out-File -Append -LiteralPath $verboseLogFile
 }
 
@@ -123,7 +123,8 @@ foreach ($vmhost in Get-Cluster -Server $vc | Get-VMHost) {
 # $alarmSpec = New-Object VMware.Vim.AlarmFilterSpec
 # $alarmMgr.ClearTriggeredAlarms($alarmSpec)
 
-Set-VsanClusterConfiguration -Configuration VSANCluster -AddSilentHealthCheck controlleronhcl,vumconfig,vumrecommendation -PerformanceServiceEnabled $true
+# Apply configuration to CL1. $c from ~ line 58. 
+Set-VsanClusterConfiguration -Configuration $c -AddSilentHealthCheck controlleronhcl,vumconfig,vumrecommendation -PerformanceServiceEnabled $true
 
 
 # Final configure and then exit maintanence mode in case patching was done earlier
