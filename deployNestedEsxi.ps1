@@ -83,7 +83,7 @@ if ( -not $ovaConfiguration ) {
 $ovaConfiguration.common.guestinfo.dns.value = $dnsServers
 $ovaConfiguration.common.guestinfo.gateway.Value = $esxiGateway
 $ovaConfiguration.common.guestinfo.ntp.value = $ntpServers
-$ovaConfiguration.common.guestinfo.netmask.value = $esxiNetworkPrefix
+$ovaConfiguration.common.guestinfo.netmask.value = $esxiSubnetMask
 $ovaConfiguration.common.guestinfo.domain.value = $domain
 $ovaConfiguration.common.guestinfo.password.value = $esxiPassword
 $ovaConfiguration.common.guestinfo.ssh.value = $VMSSH
