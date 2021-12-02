@@ -61,7 +61,7 @@ if( -Not $c) {
     Write-Host "Creating VSAN Cluster VLANCluster ..."
     New-Cluster -Server $vc -Name CL1 -Location (Get-Datacenter -Name DC -Server $vc) -DrsEnabled -HAEnabled -VsanEnabled | Out-File -Append -LiteralPath $verboseLogFile
 
-(Get-Cluster VLANCluster) | New-AdvancedSetting -Name "das.ignoreRedundantNetWarning" -Type ClusterHA -Value $true -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
+(Get-Cluster CL1) | New-AdvancedSetting -Name "das.ignoreRedundantNetWarning" -Type ClusterHA -Value $true -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
 }
 
 # Add hosts to cluster
@@ -124,7 +124,7 @@ foreach ($vmhost in Get-Cluster -Server $vc | Get-VMHost) {
 # $alarmMgr.ClearTriggeredAlarms($alarmSpec)
 
 # Apply configuration to CL1. $c from ~ line 58. 
-Set-VsanClusterConfiguration -Configuration $c -AddSilentHealthCheck controlleronhcl,vumconfig,vumrecommendation -PerformanceServiceEnabled $true
+Set-VsanClusterConfiguration -Configuration "CL1" -AddSilentHealthCheck controlleronhcl,vumconfig,vumrecommendation -PerformanceServiceEnabled $true
 
 
 # Final configure and then exit maintanence mode in case patching was done earlier

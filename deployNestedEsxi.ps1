@@ -21,16 +21,16 @@ if (-not $vCenter) {
 
 # From WL
 $NestedESXiHostnameToIPs = @{
-    $Esxi01Name = $Esxi01Ip
-    $Esxi02Name = $Esxi02Ip
-    $Esxi03Name = $Esxi03Ip
+    $esxi01Name = $esxi01Ip
+    $esxi02Name = $esxi02Ip
+    $esxi03Name = $esxi03Ip
 }
 
 
 $VAppName = "Nested-vSphere-" + $BUILDTIME
 $verboseLogFile = "/var/workspace_cache/logs/vsphere-deployment-" + $BUILDTIME + ".log"
 
-# Write-Host "hostnameToIp map" $NestedESXiHostnameToIPs
+Write-Host "hostnameToIp map" $NestedESXiHostnameToIPs
 
 # Nested ESXi VM Resources
 $NestedESXivCPU = "4"
@@ -88,7 +88,7 @@ $ovaConfiguration.common.guestinfo.domain.value = $domain
 $ovaConfiguration.common.guestinfo.password.value = $esxiPassword
 $ovaConfiguration.common.guestinfo.ssh.value = $VMSSH
 $ovaConfiguration.common.guestinfo.createvmfs.value = $VMVMFS
-$ovaConfiguration.common.guestinfo.syslog = $syslogServer
+# $ovaConfiguration.common.guestinfo.syslog = $syslogServer
 
 $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach-Object {
     $VMName = $_.Key
@@ -98,11 +98,11 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
     $ovaConfiguration.common.guestinfo.hostname.value = $VMName + "-" + $BUILDTIME + "." + $domain
     $ovaConfiguration.common.guestinfo.ipaddress.value = $VMIPAddress
     # print out the OVA settings
-    # $ovfconfig = $ovaConfiguration.TohashTable()
-    # $ovfconfig.GetEnumerator() | ForEach-Object {
-    #     $message = 'key {0} value {1}' -f $_.key, $_.value
-    #     Write-Host $message
-    # }
+    $ovfconfig = $ovaConfiguration.TohashTable()
+    $ovfconfig.GetEnumerator() | ForEach-Object {
+        $message = 'key {0} value {1}' -f $_.key, $_.value
+        Write-Host $message
+    }
 
 
     # Write-Host $ovaConfiguration | Format-Custom -Depth 3
