@@ -47,7 +47,7 @@ $vmhost = $cluster | Get-VMHost | Select -First 1
 
 # Configure vCenter
 Write-Host "Connecting to the new VCSA ..."
-$vc = Connect-VIServer $vCenter -User "administrator@vsphere.local" -Password $esxiPassword -WarningAction SilentlyContinue
+$vc = Connect-VIServer $vcsaHostname -User "administrator@vsphere.local" -Password $esxiPassword -WarningAction SilentlyContinue
 
 $d = Get-Datacenter -Server $vc DC -ErrorAction Ignore
 if( -Not $d) {

@@ -107,7 +107,7 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
 
     # Write-Host $ovaConfiguration | Format-Custom -Depth 3
     $tempVmName = $VMName + "-" + $BUILDTIME + "." + $domain
-    Write-Host "VMname $tempVmName"
+    # Write-Host "VMname $tempVmName"
     $vm = Import-VApp -Name $tempVmName -Source $ovaPath -VMHost $vmhost -Datastore $datastore -OvfConfiguration $ovaConfiguration -DiskStorageFormat thin
     if ( -not $vm ) {
         throw "Nested ESXi host did not get deployed."
@@ -116,7 +116,7 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
     # update resources on new machine
     # move vmknic to correct network 
     # $netAdapters = Get-NetworkAdapter -VM $vm
-    Write-Host "VM adapter names $netAdapters"
+    # Write-Host "VM adapter names $netAdapters"
     Get-NetworkAdapter -VM $vm -Name 'Network adapter 1' | Set-NetworkAdapter -NetworkName $esxiMgmtNet -Confirm:$false
     Get-NetworkAdapter -VM $vm -Name 'Network adapter 2' | Set-NetworkAdapter -NetworkName $esxiMgmtNet -Confirm:$false
 
