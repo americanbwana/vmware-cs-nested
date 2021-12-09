@@ -1,13 +1,9 @@
-# Using k8s CS pipeline
-# Need a persistentVolumeClaim, PV with at 30Gi
-# The repo files need to be copied over from within the container. 
-# Coping them over to the PV from the node causes issues
-# PV is mounted on /var/workspace_cache
-# Command to copy files over from Repo.
-# wget -mxnp -q -nH '${input.Repo_Base_URI}'vcsa/ -P "/var/workspace_cache/" -R "index.html*""
-# will need to chmod +x ovftool* and vcsa-deploy*
+# Author: Dana Gertsch - @knotacoder / https://knotacoder.com
+# December 2021
+# Hat tip to William Lam (@lamw)
+# Some code reused from https://github.com/lamw/vsphere-with-tanzu-nsxt-automated-lab-deployment
 # 
-# import from variable file 
+# Offered As-Is.  No warranty or guarantees implied or offered.
 # Generated and saved in CS stage.
 . "/working/variables.ps1"
 # make sure they were imported
@@ -16,8 +12,6 @@ if (-not $vCenter) {
 } else {
     Write-Host "Variables were imported, for example $vCenter"
 }
-# Add variables
-# $esxiOva = "Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 
 # From WL
 $NestedESXiHostnameToIPs = @{
@@ -29,8 +23,6 @@ $NestedESXiHostnameToIPs = @{
 
 $VAppName = "Nested-vSphere-" + $BUILDTIME
 $verboseLogFile = "/var/workspace_cache/logs/vsphere-deployment-" + $BUILDTIME + ".log"
-
-Write-Host "hostnameToIp map" $NestedESXiHostnameToIPs
 
 # Nested ESXi VM Resources
 $NestedESXivCPU = "4"
@@ -44,15 +36,14 @@ $VMSSH = $true
 $VMVMFS = $false
 
 ## Do not edit below here
+## Ok, if really want to. 
 
 # Disable SSL checking
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 
    
 Write-Host "Connecting to Management vCenter Server $vCenter ..."
-Write-Host "Username $vCenterUser"
-# Write-Host "Pass $vCenterPass"
-# $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
+
 $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass 
 
 if ( -not $viConnection ) {
@@ -66,20 +57,17 @@ $cluster = Get-Cluster -Server $viConnection -Name $vmCluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
-# Add vAPP for new machines
-
 # /working is the entry point for the container
+# /var/workspace_cache is the mount point for the PV
+# Get OVA configuration
 $ovaPath = "/var/workspace_cache/repo/esxi/Nested_ESXi7.0u3_Appliance_Template_v1.ova"
 
-
-# Now loop through $NestedESXiHostnameToIP
-# Get OVA configuration
 $ovaConfiguration = Get-OvfConfiguration $ovaPath
 if ( -not $ovaConfiguration ) {
     throw "Could not get ovaConfiguration.  Maybe the path is wrong, or it didn't get downloaded."
 }
 
-# Change config
+# Update config
 $ovaConfiguration.common.guestinfo.dns.value = $dnsServers
 $ovaConfiguration.common.guestinfo.gateway.Value = $esxiGateway
 $ovaConfiguration.common.guestinfo.ntp.value = $ntpServers
@@ -113,15 +101,11 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
         throw "Nested ESXi host did not get deployed."
     }
 
-    # update resources on new machine
-    # move vmknic to correct network 
-    # $netAdapters = Get-NetworkAdapter -VM $vm
-    # Write-Host "VM adapter names $netAdapters"
     Get-NetworkAdapter -VM $vm -Name 'Network adapter 1' | Set-NetworkAdapter -NetworkName $esxiMgmtNet -Confirm:$false
     Get-NetworkAdapter -VM $vm -Name 'Network adapter 2' | Set-NetworkAdapter -NetworkName $esxiMgmtNet -Confirm:$false
 
 
-    # add vmnic 2 and 3
+    # add vmnic 2 and 3 for NSX-T. Maybe in V2
     # New-NetworkAdapter -VM $vm -Type Vmxnet3 -NetworkName $NSXVTEPNetwork -StartConnected -confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
     # New-NetworkAdapter -VM $vm -Type Vmxnet3 -NetworkName $NSXVTEPNetwork -StartConnected -confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
 

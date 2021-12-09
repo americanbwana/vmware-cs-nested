@@ -1,3 +1,9 @@
+# Author: Dana Gertsch - @knotacoder / https://knotacoder.com
+# December 2021
+# Hat tip to William Lam (@lamw)
+# Some code reused from https://github.com/lamw/vsphere-with-tanzu-nsxt-automated-lab-deployment
+# 
+# Offered As-Is.  No warranty or guarantees implied or offered.
 # import from variable file 
 # Generated and saved in CS stage.
 . "/working/variables.ps1"
@@ -15,25 +21,13 @@ $VCSADeploymentSize = "tiny"
 $VAppName = "Nested-vSphere-" + $BUILDTIME
 $verboseLogFile = "/var/workspace_cache/logs/vsphere-deployment-" + $BUILDTIME + ".log"
 
-# General Deployment Configuration for Nested ESXi, VCSA & NSX VMs
-
-## Do not edit below here
-
 # Disable SSL checking
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
-
 
 Write-Host "Connecting to Management vCenter Server $vCenter ..."
 $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
 
-# $datastore = Get-Datastore -Server $viConnection -Name $vmDatastore | Select -First 1
-# $cluster = Get-Cluster -Server $viConnection -Name $vmCluster
-# $datacenter = $cluster | Get-Datacenter
-# $vmhost = $cluster | Get-VMHost | Select -First 1
-
-
 # Deploy OVA into vCenter
-# /working/repo/vcsa/VMware-VCSA-all-7.0.3/
 $config = (Get-Content -Raw "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/templates/install/embedded_vCSA_on_VC.json") | convertfrom-json
 
 if ( -not $config ) {
@@ -72,7 +66,7 @@ $config | ConvertTo-Json -Depth 4| Set-Content -Path "/var/workspace_cache/vcsaj
 
 # run the command to deploy the VCSA.
 Write-Host "Deploying vCSA.  This will take at least 30 minutes so be patient."
-Write-host "You can view the status by tailing /var/workspace_cache/NestedVcsa-$BUILDTIME.log"
+Write-host "You can view the status by tailing /var/workspace_cache/logs/NestedVcsa-$BUILDTIME.log"
 Invoke-Expression "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli-installer/lin64/vcsa-deploy install --no-esx-ssl-verify --accept-eula --acknowledge-ceip /tmp/jsontemplate.json"  | Out-File -Append -LiteralPath /var/workspace_cache/logs/NestedVcsa-$BUILDTIME.log
 
 # move into vApp

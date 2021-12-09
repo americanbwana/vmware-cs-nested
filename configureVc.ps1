@@ -1,3 +1,9 @@
+# Author: Dana Gertsch - @knotacoder / https://knotacoder.com
+# December 2021
+# Hat tip to William Lam (@lamw)
+# Some code reused from https://github.com/lamw/vsphere-with-tanzu-nsxt-automated-lab-deployment
+# 
+# Offered As-Is.  No warranty or guarantees implied or offered.
 # Generated and saved in CS stage.
 . "/working/variables.ps1"
 # make sure they were imported
@@ -15,35 +21,13 @@ $NestedESXiHostnameToIPs = @{
     $Esxi03Name = $Esxi03Ip
 }
 
-
-$VAppName = "Nested-vSphere-" + $BUILDTIME
 $verboseLogFile = "/var/workspace_cache/logs/vsphere-deployment-" + $BUILDTIME + ".log"
 
 $NestedESXiCachingvDisk = "8" #GB
 $NestedESXiCapacityvDisk = "100" #GB
 
-## Do not edit below here
-
 # Disable SSL checking
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
-
-   
-# Write-Host "Connecting to Management vCenter Server $vCenter ..."
-# Write-Host "Username $vCenterUser"
-# Write-Host "Pass $vCenterPass"
-# $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass -WarningAction SilentlyContinue
-# $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass 
-
-# if ( -not $viConnection ) {
-#     throw "Could not connect to $vCenter"
-# } else {
-#     Write-Host $viConnection
-# }
-
-# $datastore = Get-Datastore -Server $viConnection -Name $vmDatastore | Select -First 1
-# $cluster = Get-Cluster -Server $viConnection -Name $vmCluster
-# $datacenter = $cluster | Get-Datacenter
-# $vmhost = $cluster | Get-VMHost | Select -First 1
 
 # Configure vCenter
 Write-Host "Connecting to the new VCSA ..."
@@ -70,9 +54,9 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
     $VMIPAddress = $_.Value
 
     $targetVMHost = $VMIPAddress
-    # if($addHostByDnsName -eq 1) {
-    #     $targetVMHost = $VMName
-    # }
+    # Make sure the Esxi deployment network allow promiscuous mode
+    # Otherwise this may fail
+
     Write-Host "Adding ESXi host $targetVMHost to Cluster ..."
     Add-VMHost -Server $vc -Location (Get-Cluster -Name CL1 ) -User "root" -Password $esxiPassword -Name $targetVMHost -Force | Out-File -Append -LiteralPath $verboseLogFile
 }
@@ -96,34 +80,7 @@ foreach ($vmhost in Get-Cluster -Server $vc | Get-VMHost) {
     New-VsanDiskGroup -Server $vc -VMHost $vmhost -SsdCanonicalName $vsanCacheDisk -DataDiskCanonicalName $vsanCapacityDisk | Out-File -Append -LiteralPath $verboseLogFile
 }
 
-# May implement later
-# if($configureVDS -eq 1) {
-#     $vds = New-VDSwitch -Server $vc  -Name $NewVCVDSName -Location (Get-Datacenter -Name $NewVCDatacenterName) -Mtu 1600
-
-#     New-VDPortgroup -Server $vc -Name $NewVCDVPGName -Vds $vds | Out-File -Append -LiteralPath $verboseLogFile
-
-#     foreach ($vmhost in Get-Cluster -Server $vc | Get-VMHost) {
-#         My-Logger "Adding $vmhost to $NewVCVDSName"
-#         $vds | Add-VDSwitchVMHost -VMHost $vmhost | Out-Null
-
-#         $vmhostNetworkAdapter = Get-VMHost $vmhost | Get-VMHostNetworkAdapter -Physical -Name vmnic1
-#         $vds | Add-VDSwitchPhysicalNetworkAdapter -VMHostNetworkAdapter $vmhostNetworkAdapter -Confirm:$false
-#     }
-# }
-
-
-# Write-Host "Clearing default VSAN Health Check Alarms, not applicable in Nested ESXi env ..."
-# $alarmMgr = Get-View AlarmManager -Server $vc
-# Get-Cluster -Server $vc | where {$_.ExtensionData.TriggeredAlarmState} | %{
-#     $cluster = $_
-#     $cluster.ExtensionData.TriggeredAlarmState | %{
-#         $alarmMgr.AcknowledgeAlarm($_.Alarm,$cluster.ExtensionData.MoRef)
-#     }
-# }
-# $alarmSpec = New-Object VMware.Vim.AlarmFilterSpec
-# $alarmMgr.ClearTriggeredAlarms($alarmSpec)
-
-# Apply configuration to CL1. $c from ~ line 58. 
+# Apply VSAN configuration to CL1. 
 Set-VsanClusterConfiguration -Configuration "CL1" -AddSilentHealthCheck controlleronhcl,vumconfig,vumrecommendation -PerformanceServiceEnabled $true
 
 
