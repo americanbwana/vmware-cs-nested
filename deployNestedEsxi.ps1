@@ -86,11 +86,11 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
     $ovaConfiguration.common.guestinfo.hostname.value = $VMName + "-" + $BUILDTIME + "." + $domain
     $ovaConfiguration.common.guestinfo.ipaddress.value = $VMIPAddress
     # print out the OVA settings
-    $ovfconfig = $ovaConfiguration.TohashTable()
-    $ovfconfig.GetEnumerator() | ForEach-Object {
-        $message = 'key {0} value {1}' -f $_.key, $_.value
-        Write-Host $message
-    }
+    # $ovfconfig = $ovaConfiguration.TohashTable()
+    # $ovfconfig.GetEnumerator() | ForEach-Object {
+    #     $message = 'key {0} value {1}' -f $_.key, $_.value
+    #     Write-Host $message
+    # }
 
 
     # Write-Host $ovaConfiguration | Format-Custom -Depth 3
