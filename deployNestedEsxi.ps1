@@ -105,9 +105,9 @@ $NestedESXiHostnameToIPs.GetEnumerator() | Sort-Object -Property Value | Foreach
     Get-NetworkAdapter -VM $vm -Name 'Network adapter 2' | Set-NetworkAdapter -NetworkName $esxiMgmtNet -Confirm:$false
 
 
-    # add vmnic 2 and 3 for NSX-T. Maybe in V2
-    # New-NetworkAdapter -VM $vm -Type Vmxnet3 -NetworkName $NSXVTEPNetwork -StartConnected -confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
-    # New-NetworkAdapter -VM $vm -Type Vmxnet3 -NetworkName $NSXVTEPNetwork -StartConnected -confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
+    # add vmnic 2 and 3 for NSX-T. 
+    New-NetworkAdapter -VM $vm -Type Vmxnet3 -NetworkName $NsxVtepNetwork -StartConnected -confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
+    New-NetworkAdapter -VM $vm -Type Vmxnet3 -NetworkName $NsxVtepNetwork -StartConnected -confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
 
     # update VM hardware
     Set-VM -Server $viConnection -VM $vm -NumCpu $NestedESXivCPU -MemoryGB $NestedESXivMem -confirm:$false
