@@ -96,5 +96,18 @@ foreach ($vmhost in Get-Cluster -Server $vc | Get-VMHost) {
         Set-VMHost -VMhost $vmhost -State Connected -RunAsync -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
     }
 }
+
+# Create VDS on vmnic1 called DVSwitch
+$vds = New-VDSwitch -Server $vc  -Name "DVSwitch" -Location (Get-Datacenter -Name "DC") -Mtu 1600
+
+New-VDPortgroup -Server $vc -Name "DVSwitch" -Vds $vds | Out-File -Append -LiteralPath $verboseLogFile
+
+foreach ($vmhost in Get-Cluster -Server $vc | Get-VMHost) {
+    Write-Host "Adding $vmhost to DC"
+    $vds | Add-VDSwitchVMHost -VMHost $vmhost | Out-Null
+
+    $vmhostNetworkAdapter = Get-VMHost $vmhost | Get-VMHostNetworkAdapter -Physical -Name vmnic1
+    $vds | Add-VDSwitchPhysicalNetworkAdapter -VMHostNetworkAdapter $vmhostNetworkAdapter -Confirm:$false
+}
 # Disconnect viserver
 Disconnect-VIServer -Server * -Force -Confirm:$false
