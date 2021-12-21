@@ -280,6 +280,17 @@ $ceipAgreementSpec = $ceipAgreementService.get()
 $ceipAgreementSpec.telemetry_agreement_displayed = $true
 $agreementResult = $ceipAgreementService.update($ceipAgreementSpec)
 
+Write-Host "Accepting NSX Manager EULA ..."
+$eulaService = Get-NsxtService -Name "com.vmware.nsx.eula.accept"
+$eulaService.create()
+
+# Applying NSXT data center license 
+Write-Host "Applying NSXT Data Center license"
+$LicenseService = Get-NsxtService -Name "com.vmware.nsx.licenses"
+$LicenseSpec = $LicenseService.Help.create.license.Create()
+$LicenseSpec.license_key = $NsxtDataCenterLicense
+$LicenseResult = $LicenseService.create($LicenseSpec)
+
 
 Write-Host "Adding vCenter Server Compute Manager ..."
 $computeManagerService = Get-NsxtService -Name "com.vmware.nsx.fabric.compute_managers"
