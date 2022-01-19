@@ -1,2 +1,4 @@
 *.ova
+variables.ps1
+*.json
 

@@ -41,7 +41,7 @@ $vmhost = $cluster | Get-VMHost | Select -First 1
 # /working is the entry point for the container
 # /var/workspace_cache is the mount point for the PV
 # Get OVA configuration
-Write-Host "Password from variables $nsxMgmtPassword"
+# Write-Host "Password from variables $nsxMgmtPassword"
 
 ## Start upload NSX manager section.
 $ovaPath = "/var/workspace_cache/repo/nsxt/nsx-unified-appliance-3.1.3.3.0.18844962.ovf"
@@ -67,11 +67,11 @@ $nsxMgrOvfConfig.Common.nsx_cli_audit_username.Value = $nsxMgmtPassword
 $nsxMgrOvfConfig.Common.nsx_cli_audit_passwd_0.Value = $nsxMgmtPassword
 
 # print out the OVA settings
-$ovfconfig = $nsxMgrOvfConfig.TohashTable()
-$ovfconfig.GetEnumerator() | ForEach-Object {
-    $message = 'key {0} value {1}' -f $_.key, $_.value
-    Write-Host $message
-}
+# $ovfconfig = $nsxMgrOvfConfig.TohashTable()
+# $ovfconfig.GetEnumerator() | ForEach-Object {
+#     $message = 'key {0} value {1}' -f $_.key, $_.value
+#     Write-Host $message
+# }
 
 Write-Host "Deploying NSX Manager VM $NSXTMgrDisplayName ..."
 
