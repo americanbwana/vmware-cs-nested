@@ -325,7 +325,7 @@ Write-Host "Checking on TN preperation"
 Do {
     Start-Sleep -Seconds 120
     Write-Host "Polling for SUCCESS state."
-    $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method GET -Body -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
+    $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method GET -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
 
 } Until ($result.result_count -eq 3)
 # clean up
