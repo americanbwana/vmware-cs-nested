@@ -7,8 +7,8 @@
 # Generated and saved in CS stage.
 # This uses direct NSXT api calls as the CONNECT-NSXTMANAGER cmdlet times out in a container
 # 
-# . "/working/variables.ps1"
-. "./variables.ps1"
+. "/working/variables.ps1"
+# . "./variables.ps1"
 # make sure they were imported
 if (-not $vCenter) {
     throw "variable.ps1 not imported"
