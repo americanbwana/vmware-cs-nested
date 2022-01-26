@@ -158,44 +158,6 @@ $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method POST -
 Write-Host "New IP Pool result $result"
 $ipPoolId=$result.id
 
-# $body=@{"display_name"="Default IP Pool";"description"="Default IP Pool"} | ConvertTo-Json -Depth 5 
-# $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method PATCH -Body $body -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
-# # Returns 201 
-# POST https://<nsx-mgr>/api/v1/pools/ip-pools
-# {
-#   "display_name": "IPPool-IPV6-1",
-#   "description": "IPPool-IPV6-1 Description",
-#   "subnets": [
-#     {
-#         "dns_nameservers": ["2002:a70:cbfa:1:1:1:1:1"],
-#         "allocation_ranges": [
-#             {
-#                 "start": "2002:a70:cbfa:0:0:0:0:1",
-#                 "end": "2002:a70:cbfa:0:0:0:0:5"
-#             }
-#         ],
-#        "gateway_ip": "2002:a80:cbfa:0:0:0:0:255",
-#        "cidr": "2002:a70:cbfa:0:0:0:0:0/124"
-#     }
-#   ]
-# }
-
-
-# # IP Pool
-# $updateURI = "https://" + $nsxtMgmtIpAddress + "/policy/api/v1/infra/ip-pools/IpPool1"
-# $body=@{"display_name"="Default IP Pool";"description"="Default IP Pool"} | ConvertTo-Json -Depth 5 
-# $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method PATCH -Body $body -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
-# # Returns 201 
-
-# # Add Subnet Range
-# $updateURI = "https://" + $nsxtMgmtIpAddress + "/policy/api/v1/infra/ip-pools/IpPool1/ip-subnets/Subnet1"
-# $allocationRange=@(@{"start"="192.168.1.240";"end"="192.168.1.254"})
-# $body=@{"cidr"="192.168.1.0/24";"gateway_ip"="192.168.1.1";"dns_nameservers"=@("192.168.1.200");"dns_suffix"="corp.local";"resource_type"="IpAddressPoolStaticSubnet";"allocation_ranges"=$allocationRange;"description"="Default Range";"display_name"="Default Range"} | ConvertTo-Json -Depth 5 
-# Write-Host $body
-# $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method PUT -Body $body -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
-# Write-Host $result
-# $subnetRangeId=$result.id 
-
 # Create Transport Zone
 $updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/transport-zones"
 $body=@{"display_name"="tz1";"host_switch_name"="/api/v1/transport-zones";"description"="Transport Zone 1";"transport_type"="OVERLAY"} | ConvertTo-Json -Depth 5 
