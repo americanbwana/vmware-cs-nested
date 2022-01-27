@@ -67,11 +67,11 @@ $nsxMgrOvfConfig.Common.nsx_cli_audit_username.Value = $nsxMgmtPassword
 $nsxMgrOvfConfig.Common.nsx_cli_audit_passwd_0.Value = $nsxMgmtPassword
 
 # print out the OVA settings
-# $ovfconfig = $nsxMgrOvfConfig.TohashTable()
-# $ovfconfig.GetEnumerator() | ForEach-Object {
-#     $message = 'key {0} value {1}' -f $_.key, $_.value
-#     Write-Host $message
-# }
+$ovfconfig = $nsxMgrOvfConfig.TohashTable()
+$ovfconfig.GetEnumerator() | ForEach-Object {
+    $message = 'key {0} value {1}' -f $_.key, $_.value
+    Write-Host $message
+}
 
 Write-Host "Deploying NSX Manager VM $NSXTMgrDisplayName ..."
 

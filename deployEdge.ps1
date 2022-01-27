@@ -100,7 +100,7 @@ $cluster = Get-Cluster -Server $viConnection -Name $vmCluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
-$ovaPath = "/var/workspace_cache/repo/edge/nsx-edge-3.1.3.3.0.18844966.ovf"
+$ovaPath = "/var/workspace_cache/repo/edge/nsx-edge-3.1.3.3.0.18844962.ovf"
 $EdgeDisplayName = "Nested-Edge-" + $BUILDTIME
 
 $EdgeUplinkProfileName = "Edge-Uplink-Profile"
