@@ -87,6 +87,9 @@ namespace CertificateCapture
     $thumbprint = [BitConverter]::ToString($hash).Replace('-',':')
     return $thumbprint
 }
+
+
+Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass 
 
 if ( -not $viConnection ) {
@@ -100,7 +103,8 @@ $cluster = Get-Cluster -Server $viConnection -Name $vmCluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
-$ovaPath = "/var/workspace_cache/repo/edge/nsx-edge-3.1.3.3.0.18844962.ovf"
+$ovaPath = "/var/workspace_cache/repo/edge/nsx-edge-3.1.3.3.0.18684496.ovf"
+#           /var/workspace_cache/repo/edge/nsx-edge-3.1.3.3.0.18684496.ovf
 $EdgeDisplayName = "Nested-Edge-" + $BUILDTIME
 
 $EdgeUplinkProfileName = "Edge-Uplink-Profile"
@@ -162,10 +166,10 @@ $nsxEdgeOvfConfig.Common.nsx_cli_audit_username.Value = "audit"
 $nsxEdgeOvfConfig.Common.nsx_cli_audit_passwd_0.Value = $nsxMgmtPassword
 
 Write-Host "Deploying NSX Edge VM $vmname ..."
-$nsxedge_vm = Import-VApp -Source $ovfPath -OvfConfiguration $nsxEdgeOvfConfig -Name $vmhost -Location $cluster -VMHost $vmhost -Datastore $datastore -DiskStorageFormat thin
+$nsxedge_vm = Import-VApp -Source $ovaPath -OvfConfiguration $nsxEdgeOvfConfig -Name $vmname -Location $cluster -VMHost $vmhost -Datastore $datastore -DiskStorageFormat thin
 
 Write-Host "Updating vCPU Count to $NSXTEdgevCPU & vMEM to $NSXTEdgevMEM GB ..."
-Set-VM -Server $viConnection -VM $nsxedge_vm -NumCpu $NSXTEdgevCPU -MemoryGB $NSXTEdgevMEM -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
+Set-VM -Server $viConnection -VM $nsxedge_vm -NumCpu $NSXTEdgevCPU -MemoryGB $NSXTEdgevMEM -Confirm:$false 
 
 Write-Host "Powering On $vmname ..."
 $nsxedge_vm | Start-Vm -RunAsync | 
