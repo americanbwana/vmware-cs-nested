@@ -103,21 +103,10 @@ $cluster = Get-Cluster -Server $viConnection -Name $vmCluster
 $datacenter = $cluster | Get-Datacenter
 $vmhost = $cluster | Get-VMHost | Select -First 1
 
-$ovaPath = "/var/workspace_cache/repo/edge/nsx-edge-3.1.3.3.0.18684496.ovf"
-#           /var/workspace_cache/repo/edge/nsx-edge-3.1.3.3.0.18684496.ovf
+$ovaPath = "/var/workspace_cache/repo/edge/nsx-edge-3.1.3.3.0.18844966.ovf"
+
 $EdgeDisplayName = "Nested-Edge-" + $BUILDTIME
 
-$EdgeUplinkProfileName = "Edge-Uplink-Profile"
-$EdgeUplinkProfilePolicy = "FAILOVER_ORDER"
-$EdgeOverlayUplinkName = "uplink1"
-$EdgeOverlayUplinkProfileActivepNIC = "fp-eth1"
-$EdgeUplinkName = "tep-uplink"
-$EdgeUplinkProfileActivepNIC = "fp-eth2"
-$EdgeUplinkProfileTransportVLAN = "0"
-$EdgeUplinkProfileMTU = "1600"
-
-# Edge Cluster
-$EdgeClusterName = "Edge-Cluster-01"
 
 # NSX-T Edge Configuration
 $NSXTEdgeDeploymentSize = "medium"
