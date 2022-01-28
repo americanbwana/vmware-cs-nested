@@ -87,7 +87,7 @@ namespace CertificateCapture
     $thumbprint = [BitConverter]::ToString($hash).Replace('-',':')
     return $thumbprint
 }
-
+$verboseLogFile = "/var/workspace_cache/logs/vsphere-deployment-" + $BUILDTIME + ".log"
 
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 $viConnection = Connect-VIServer $vCenter -User $vCenterUser -Password $vCenterPass 
@@ -163,5 +163,9 @@ Set-VM -Server $viConnection -VM $nsxedge_vm -NumCpu $NSXTEdgevCPU -MemoryGB $NS
 Write-Host "Powering On $vmname ..."
 $nsxedge_vm | Start-Vm -RunAsync | 
 
+Write-Host "Moving Nested Edge into $VAppName vApp ..."
+$VApp = Get-VApp -Name $VAppName -Server $viConnection -Location $cluster
+$vcsaVM = Get-VM -Name $NSXTMgrDisplayName -Server $viConnection
+Move-VM -VM $vcsaVM -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
 # Disconnect viserver
 Disconnect-VIServer -Server * -Force -Confirm:$false

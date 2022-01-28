@@ -72,8 +72,8 @@ Invoke-Expression "/var/workspace_cache/repo/vcsa/VMware-VCSA-all-7.0.3/vcsa-cli
 # move into vApp
 $VApp = Get-VApp -Name $VAppName -Server $viConnection -Location $cluster
 Write-Host "Moving $vcsaDisplayName into $VAppName vApp ..."
-$vcsaVM = Get-VM -Name $vcsaDisplayName -Server $viConnection
-Move-VM -VM $vcsaVM -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
+$edgeVM = Get-VM -Name $vmname -Server $viConnection
+Move-VM -VM $edgeVM -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
 
 # Disconnect viserver
 Disconnect-VIServer -Server * -Force -Confirm:$false
