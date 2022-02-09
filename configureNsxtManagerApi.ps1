@@ -112,7 +112,7 @@ Write-Host "Telemetry Agreement $result"
 
 $updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/license"
 $body = @{
-    "license_key"=$nsxtLicense
+    "license_key"=$NsxtDataCenterLicense
 } | ConvertTo-Json -Depth 5
 $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method PUT -Body $body -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
 Write-Host "License application $result"
