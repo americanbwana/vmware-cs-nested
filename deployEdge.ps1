@@ -163,7 +163,7 @@ Set-VM -Server $viConnection -VM $nsxedge_vm -NumCpu $NSXTEdgevCPU -MemoryGB $NS
 Write-Host "Powering On $vmname ..."
 $nsxedge_vm | Start-Vm -RunAsync 
 
-$VAppName = $VAppName = "Nested-vSphere" + $BUILDTIME
+$VAppName = $VAppName = "Nested-vSphere-" + $BUILDTIME
 
 Write-Host "Moving Nested Edge into $VAppName vApp ..."
 $VApp = Get-VApp -Name $VAppName -Server $viConnection -Location $cluster
