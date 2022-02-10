@@ -167,7 +167,7 @@ $VAppName = $VAppName = "Nested-vSphere-" + $BUILDTIME
 
 Write-Host "Moving Nested Edge into $VAppName vApp ..."
 $VApp = Get-VApp -Name $VAppName -Server $viConnection -Location $cluster
-$vcsaVM = Get-VM -Name $NSXTMgrDisplayName -Server $viConnection
+$vcsaVM = Get-VM -Name $vmname -Server $viConnection
 Move-VM -VM $vcsaVM -Server $viConnection -Destination $VApp -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
 # Disconnect viserver
 Disconnect-VIServer -Server * -Force -Confirm:$false
