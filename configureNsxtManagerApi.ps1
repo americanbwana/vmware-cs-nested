@@ -160,7 +160,10 @@ $ipPoolId=$result.id
 
 # Create Transport Zone
 $updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/transport-zones"
-$body=@{"display_name"="tz1";"host_switch_name"="/api/v1/transport-zones";"description"="Transport Zone 1";"transport_type"="OVERLAY"} | ConvertTo-Json -Depth 5 
+$body=@{"display_name"="tz1"
+        "host_switch_name"="/api/v1/transport-zones"
+        "description"="Transport Zone 1"
+        "transport_type"="OVERLAY"} | ConvertTo-Json -Depth 5 
 Write-Host "TZ body "
 $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method POST -Body $body -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
 Write-Host "Create TZ result - $result"
@@ -170,9 +173,14 @@ $hostSwitchId=$result.host_switch_id
 # Create Uplink Profile
 $updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/host-switch-profiles"
 # $teaming=@(@{"standby_list"=@();"active_list"=@(@{"uplink_name"="uplink3";"uplink_type"="PNIC"};"policy"="FAILOVER_ORDER")})
-$teaming=@{"standby_list"=@();"active_list"=@(@{"uplink_name"="uplink3";"uplink_type"="PNIC"});"policy"="FAILOVER_ORDER"}
+$teaming=@{"standby_list"=@()
+            "active_list"=@(@{"uplink_name"="uplink3"
+            "uplink_type"="PNIC"})
+            "policy"="FAILOVER_ORDER"}
 Write-Host "teaming body $teaming"
-$body =@{"resource_type"="UplinkHostSwitchProfile";"display_name"="uplinkProfile2";"teaming"=$teaming;"transport_vlan"=0} | ConvertTo-Json -Depth 5 
+$body =@{"resource_type"="UplinkHostSwitchProfile"
+        "display_name"="uplinkProfile2"
+        "teaming"=$teaming;"transport_vlan"=0} | ConvertTo-Json -Depth 5 
 Write-Host "Create Uplink Profile body - $body"
 $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method POST -Body $body -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
 Write-Host "Create TZ result - $result"
@@ -183,11 +191,11 @@ $hostSwitchProfileId=$result.id
 $updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/fabric/virtual-switches"
 # start the loop
 Do {
-$result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method GET  -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
-# $host_switch_id=$result.results[0] | ConvertFrom-Json
-Start-Sleep -s 15
-Write-Host "Waiting for Fabric Discovery to complete"
-} Until ($result.result_count -gt 0)
+    $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method GET  -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
+    # $host_switch_id=$result.results[0] | ConvertFrom-Json
+    Start-Sleep -s 15
+    Write-Host "Waiting for Fabric Discovery to complete"
+    } Until ($result.result_count -gt 0)
 # end the loop 
 $host_switch_id=$result.results.uuid
 Write-Host "host_switch_id " $host_switch_id

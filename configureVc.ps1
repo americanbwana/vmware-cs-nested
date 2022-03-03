@@ -107,5 +107,17 @@ foreach ($vmhost in Get-Cluster -Server $vc | Get-VMHost) {
     $vmhostNetworkAdapter = Get-VMHost $vmhost | Get-VMHostNetworkAdapter -Physical -Name vmnic1
     $vds | Add-VDSwitchPhysicalNetworkAdapter -VMHostNetworkAdapter $vmhostNetworkAdapter -Confirm:$false
 }
+
+# Add second DVS for Edge Uplink
+$vds = New-VDSwitch -Server $vc  -Name "DVSEdge" -Location (Get-Datacenter -Name "DC") -Mtu 1600
+
+foreach ($vmhost in Get-Cluster -Server $vc | Get-VMHost) {
+    Write-Host "Adding $vmhost to DC"
+    $vds | Add-VDSwitchVMHost -VMHost $vmhost | Out-Null
+
+    $vmhostNetworkAdapter = Get-VMHost $vmhost | Get-VMHostNetworkAdapter -Physical -Name vmnic2
+    $vds | Add-VDSwitchPhysicalNetworkAdapter -VMHostNetworkAdapter $vmhostNetworkAdapter -Confirm:$false
+}
+$newVds = New-VirtualSwitch -VirtualSwitch -$vds -Name "vPgEdgeUplink"
 # Disconnect viserver
 Disconnect-VIServer -Server * -Force -Confirm:$false

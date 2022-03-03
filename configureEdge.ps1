@@ -172,6 +172,112 @@ Disconnect-VIServer -Server * -Force -Confirm:$false
 
 
 ## New code 
+
+# Add edge as transport node
+# https://developer.vmware.com/apis/1163/nsx-t
+# Required variables
+# transport_zone_id
+# transport_zone_profile_ids (array)
+# data_network_ids
+# storage_id
+# compute_id
+# vc_id 
+
+# post payload template
+$body=@{
+    "resource_type"="TransportNode"
+    "display_name"=$EdgeDisplayName
+    "description"="Edge Node"
+    "node_deployment_info"=@{
+        "display_name"=$EdgeDisplayName
+        "resource_type"="EdgeNode"
+        "ip_addresses"=@(
+            "192.168.1.216"
+            )
+        "deployment_type"="VIRTUAL_MACHINE"
+        "deployment_config"=@{
+            "form_factor"="SMALL"
+            "vm_deployment_config"=@{
+                "placement_type"="BfdHealthMonitoringProfile"
+                "vc_id"="dummyValue"
+                "compute_id"="dummyValue"
+                "storage_id"="dummyValue"
+                "data_network_ids"=@(
+                    "dummyValue"
+                )
+                "management_network_id"="dummyValue"
+                "management_port_subnets"=@(@{
+                    "ip_addresses"=@(
+                        $edgeIpAddress
+                    )
+                    "prefix_length"="dummyValue"
+                })
+                "default_gateway_addresses"=@(
+                    $esxiGateway
+                )
+                "reservation_info"=@{
+                    "memory_reservation"=@{
+                        "reservation_percentage"="0"
+                    }
+                    "cpu_reservation"=@{
+                        "cpu_count"="0"
+                        "memory_allocation_in_mb"="0"
+                    }
+                }
+                "node_user_settings"=@{
+                    "cli_password"="dummyValue"
+                    "root_password"="dummyValue"
+                    "cli_username"="admin"
+                    "audit_username"="audit"
+                    "audit_password"="dummyValue"
+                }                
+            }
+            "node_settings"=@{
+                "hostname"=$EdgeDisplayName
+                "search_domains"=@(
+                    "dummyValue"
+                )
+                "ntp_servers"=@(
+                    "0.north-america.pool.ntp.org"
+                    "1.north-america.pool.ntp.org"
+                )
+                "dns_server"=@(
+                    $dnsServers
+                )
+                "enable_ssh"=$true
+                "allow_ssh_root_login"=$true
+            }
+        }
+    }
+    "host_switches"=@(@{
+        "host_switch_mode"="STANDARD"
+        "host_switch_type"="NVDS"
+        "host_switch_profile_ids"=@(@{
+            "value"="dummyValue"
+            "key"="UplinkHostSwitchProfile"
+        })
+        "host_switch_name"="nsxHostSwitch"
+        "pnics"=@(@{
+            "device_name"="fp-eth0"
+            "uplink_name"="uplink-1"
+        })
+        "transport_zone_endpoints"=@(@{
+            "transport_zone_id"="dummyValue"
+            "transport_zone_profile_ids"=@(@{
+                "profile_id"="dummyValue"
+                "resource_type"="BfdHealthMonitoringProfile"
+            })
+        })
+    })
+
+
+}
+
+# Create edge cluster
+
+# Add edge to cluster
+
+
 # $edgeNodes = (Get-NsxtService -Name "com.vmware.nsx.fabric.nodes").list().results | where { $_.resource_type -eq "EdgeNode" }
     $edgeClusterService = Get-NsxtService -Name "com.vmware.nsx.edge_clusters"
     $edgeClusterStateService = Get-NsxtService -Name "com.vmware.nsx.edge_clusters.state"
