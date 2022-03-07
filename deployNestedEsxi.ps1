@@ -25,8 +25,8 @@ $VAppName = "Nested-vSphere-" + $BUILDTIME
 $verboseLogFile = "/var/workspace_cache/logs/vsphere-deployment-" + $BUILDTIME + ".log"
 
 # Nested ESXi VM Resources
-$NestedESXivCPU = "4"
-$NestedESXivMEM = "24" #GB
+$NestedESXivCPU = "8"
+$NestedESXivMEM = "32" #GB
 $NestedESXiCachingvDisk = "8" #GB
 $NestedESXiCapacityvDisk = "100" #GB
 

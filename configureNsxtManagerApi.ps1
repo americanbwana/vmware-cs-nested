@@ -140,17 +140,23 @@ $computeId=$result.id
 
 # IP Pool but with a useable result payload
 $updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/pools/ip-pools"
+# change range to match VLAN 252 on VYOS
+# 172.25.2.1/24
+$vtepPoolStart="172.25.2.50"
+$vtepPoolEnd="172.25.2.74"
+$vtepGateway="172.25.2.1"
+$vtepPoolCidr="172.25.2.1/24"
 $body=@{
     "display_name"="Ip Pool 01"
     "description"="First IP Pool"
     "subnets"=@(@{
         "dns_nameservers"=@($dnsServers)
         "allocation_ranges"=@(@{
-            "start"=$poolStartIp
-            "end"=$poolEndIp
+            "start"=$vtepPoolStart
+            "end"=$vtepPoolEnd
         })
-        "gateway_ip"=$esxiGateway
-        "cidr"=$poolCidr
+        "gateway_ip"=$vtepGateway
+        "cidr"=$vtepPoolCidr
     })
 } | ConvertTo-Json -Depth 5
 Write-Host "New IP Pool body $body" 
@@ -178,9 +184,11 @@ $teaming=@{"standby_list"=@()
             "uplink_type"="PNIC"})
             "policy"="FAILOVER_ORDER"}
 Write-Host "teaming body $teaming"
+# change transport_vlan from 0 to 252
+# will use a VLAN on the VYOS router
 $body =@{"resource_type"="UplinkHostSwitchProfile"
         "display_name"="uplinkProfile2"
-        "teaming"=$teaming;"transport_vlan"=0} | ConvertTo-Json -Depth 5 
+        "teaming"=$teaming;"transport_vlan"=252} | ConvertTo-Json -Depth 5 
 Write-Host "Create Uplink Profile body - $body"
 $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method POST -Body $body -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
 Write-Host "Create TZ result - $result"
@@ -189,6 +197,9 @@ $hostSwitchProfileId=$result.id
 # Create Transport Node Profile
 # Need to wait until the initial inventory is complete.  Otherwise the host_switch_id is null 
 $updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/fabric/virtual-switches"
+# need to change this to a filter as we now have two VDS
+# /api/v1/search/query?query=resource_type:DistributedVirtualSwitch AND display_name:DVSwitch
+
 # start the loop
 Do {
     $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method GET  -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }

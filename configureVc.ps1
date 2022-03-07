@@ -118,6 +118,6 @@ foreach ($vmhost in Get-Cluster -Server $vc | Get-VMHost) {
     $vmhostNetworkAdapter = Get-VMHost $vmhost | Get-VMHostNetworkAdapter -Physical -Name vmnic2
     $vds | Add-VDSwitchPhysicalNetworkAdapter -VMHostNetworkAdapter $vmhostNetworkAdapter -Confirm:$false
 }
-$newVds = New-VirtualSwitch -VirtualSwitch -$vds -Name "vPgEdgeUplink"
+$newVds = New-VirtualSwitch -VirtualSwitch $vds -Name "vPgEdgeUplink"
 # Disconnect viserver
 Disconnect-VIServer -Server * -Force -Confirm:$false
