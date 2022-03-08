@@ -177,9 +177,9 @@ Write-Host "Create TZ result - $result"
 # 
 $searchURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/search/query?query=resource_type:TransportZone AND display_name:nsx-vlan-transportzone"
 $result = Invoke-RestMethod -uri $searchURI -SkipCertificateCheck -Method GET -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
-
-$transportZoneId=$result[0].id 
-$hostSwitchId=$result[0].host_switch_id 
+Write-Host "TZ search result " + $result
+$transportZoneId=$results[0].id 
+# $hostSwitchId=$result[0].host_switch_id 
 
 # Create Uplink Profile
 $updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/host-switch-profiles"
@@ -198,6 +198,7 @@ Write-Host "Create Uplink Profile body - $body"
 $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method POST -Body $body -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
 Write-Host "Create TZ result - $result"
 $hostSwitchProfileId=$result.id
+Write-Host "Profile ID " + $hostSwitchProfileId
 
 # Create Transport Node Profile
 # Need to wait until the initial inventory is complete.  Otherwise the host_switch_id is null 
