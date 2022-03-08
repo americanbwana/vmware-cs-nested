@@ -145,7 +145,7 @@ $updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/pools/ip-pools"
 $vtepPoolStart="172.25.2.50"
 $vtepPoolEnd="172.25.2.74"
 $vtepGateway="172.25.2.1"
-$vtepPoolCidr="172.25.2.1/24"
+$vtepPoolCidr="172.25.2.0/24"
 $body=@{
     "display_name"="Ip Pool 01"
     "description"="First IP Pool"
@@ -173,8 +173,13 @@ $body=@{"display_name"="tz1"
 Write-Host "TZ body "
 $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method POST -Body $body -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
 Write-Host "Create TZ result - $result"
-$transportZoneId=$result.id 
-$hostSwitchId=$result.host_switch_id 
+# will use the existing vlan backed TransportZone
+# 
+$searchURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/search/query?query=resource_type:TransportZone AND display_name:nsx-vlan-transportzone"
+$result = Invoke-RestMethod -uri $searchURI -SkipCertificateCheck -Method GET -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
+
+$transportZoneId=$result[0].id 
+$hostSwitchId=$result[0].host_switch_id 
 
 # Create Uplink Profile
 $updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/host-switch-profiles"
@@ -196,19 +201,21 @@ $hostSwitchProfileId=$result.id
 
 # Create Transport Node Profile
 # Need to wait until the initial inventory is complete.  Otherwise the host_switch_id is null 
-$updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/fabric/virtual-switches"
+# $updateURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/fabric/virtual-switches"
+# Query /api/v1/search/query?query=resource_type:DistributedVirtualSwitch AND display_name:DVSwitch
+$searchURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/search/query?query=resource_type:DistributedVirtualSwitch AND display_name:DVSwitch"
 # need to change this to a filter as we now have two VDS
 # /api/v1/search/query?query=resource_type:DistributedVirtualSwitch AND display_name:DVSwitch
 
 # start the loop
 Do {
-    $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method GET  -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
+    $result = Invoke-RestMethod -uri $searchURI -SkipCertificateCheck -Method GET  -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
     # $host_switch_id=$result.results[0] | ConvertFrom-Json
     Start-Sleep -s 15
     Write-Host "Waiting for Fabric Discovery to complete"
     } Until ($result.result_count -gt 0)
 # end the loop 
-$host_switch_id=$result.results.uuid
+$host_switch_id=$result.results[0].uuid
 Write-Host "host_switch_id " $host_switch_id
 
 
