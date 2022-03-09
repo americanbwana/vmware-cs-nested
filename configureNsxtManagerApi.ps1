@@ -178,7 +178,7 @@ Write-Host "Create TZ result - $result"
 $searchURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/search/query?query=resource_type:TransportZone AND display_name:nsx-vlan-transportzone"
 $result = Invoke-RestMethod -uri $searchURI -SkipCertificateCheck -Method GET -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
 Write-Host "TZ search result " + $result
-$transportZoneId=$results[0].id 
+$transportZoneId=$result.results.id
 Write-Host "TZ Id " + $transportZoneId
 # $hostSwitchId=$result[0].host_switch_id 
 
