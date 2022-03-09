@@ -170,7 +170,7 @@ $body=@{"display_name"="tz1"
         "host_switch_name"="/api/v1/transport-zones"
         "description"="Transport Zone 1"
         "transport_type"="OVERLAY"} | ConvertTo-Json -Depth 5 
-Write-Host "TZ body "
+Write-Host "TZ body " + $body
 $result = Invoke-RestMethod -uri $updateURI -SkipCertificateCheck -Method POST -Body $body -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
 Write-Host "Create TZ result - $result"
 # will use the existing vlan backed TransportZone
@@ -179,6 +179,7 @@ $searchURI = "https://" + $nsxtMgmtIpAddress + "/api/v1/search/query?query=resou
 $result = Invoke-RestMethod -uri $searchURI -SkipCertificateCheck -Method GET -ContentType "application/json" -Headers @{Authorization = "Basic $base64AuthInfo" }
 Write-Host "TZ search result " + $result
 $transportZoneId=$results[0].id 
+Write-Host "TZ Id " + $transportZoneId
 # $hostSwitchId=$result[0].host_switch_id 
 
 # Create Uplink Profile
